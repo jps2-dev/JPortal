@@ -1,4 +1,4 @@
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzSIkdLY6BBxeBgPPfjAwMpILLkzj-nWkibnvy_fer9NnFgO1giMuGY2BitHGswzELm3Q/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwH20yDwPhsqoumW6ALtgObIv73X88dqtlggYgO-sk0A1gRW0_d083z6o-GsMpFErjp4A/exec';
 
 function gasGet_(action, params) {
   var url = GAS_URL + '?action=' + action;
