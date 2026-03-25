@@ -1228,7 +1228,7 @@ function gasPost_(action, body) {
         return;
       }
 
-      var houseCount   = getHouseCount();
+      var houseCount   = 1; // rate sudah di-merge per blok di backend
       var grandTotal   = 0;
       var breakdownHtml = '';
       var monthNames   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -1278,11 +1278,32 @@ function gasPost_(action, body) {
 
           var labels = mIdxs.map(function(i){ return monthNames[i]; }).join(', ');
 
-          breakdownHtml +=
-            '<div class="flex justify-between text-xs text-gray-500 mt-1">' +
-              '<span>' + labels + ' ' + yr + '</span>' +
-              '<span>Rp ' + Number(subtotal).toLocaleString('id-ID') + '</span>' +
-            '</div>';
+          // Tampilkan breakdown per blok jika multi-blok
+          var bloksArr = (wargaRateByMonth && window._wargaBloks_) ? window._wargaBloks_ : null;
+          if (bloksArr && bloksArr.length > 1) {
+            // Render per blok
+            bloksArr.forEach(function(blokName) {
+              // Ambil rate blok ini dari rateByBlokMonth jika ada
+              var blokRate = rateNum / bloksArr.length; // fallback equal split
+              if (window._rateByBlokMonth_ && window._rateByBlokMonth_[blokName]) {
+                var brm = window._rateByBlokMonth_[blokName];
+                var key0 = yrInt + '_' + mIdxs[0];
+                if (brm[key0]) blokRate = brm[key0];
+              }
+              var blokSubtotal = blokRate * mIdxs.length;
+              breakdownHtml +=
+                '<div class="flex justify-between text-xs text-gray-500 mt-1">' +
+                  '<span>' + labels + ' ' + yr + ' (' + blokName + ')</span>' +
+                  '<span>Rp ' + Number(blokSubtotal).toLocaleString('id-ID') + '</span>' +
+                '</div>';
+            });
+          } else {
+            breakdownHtml +=
+              '<div class="flex justify-between text-xs text-gray-500 mt-1">' +
+                '<span>' + labels + ' ' + yr + '</span>' +
+                '<span>Rp ' + Number(subtotal).toLocaleString('id-ID') + '</span>' +
+              '</div>';
+          }
         });
       });
 
@@ -1298,6 +1319,8 @@ function gasPost_(action, body) {
 
       wargaPaidMonths  = res.paid;
       wargaRateByMonth = res.rateByMonth || null;
+      window._wargaBloks_ = res.bloks || null;
+      window._rateByBlokMonth_ = res.rateByBlokMonth || null;
 
       // === 1) Set rate & hunian card ===
       // Priority 1: defaultRate dari server (sudah hitung AK-AP + fallback E)
@@ -1892,7 +1915,7 @@ function gasPost_(action, body) {
 
         nominalPerTahun: (function() {
           var result = {};
-          var houseCount = getHouseCount();
+          var houseCount = 1; // rate sudah di-merge per blok di backend
           Object.keys(selectedMonthsByYear).forEach(function(yr) {
             var yrInt  = parseInt(yr, 10);
             var months = selectedMonthsByYear[yr] || [];
@@ -3884,8 +3907,6 @@ function gasPost_(action, body) {
   }
 
   function buildUidCompactHTML(item) {
-    var bulanArray = (item.bulan || '').toString().split(',').map(function(b) { return b.trim(); });
-
     var verifiedFmt = item.verifiedAt ? formatTanggalIndonesia(item.verifiedAt) : '';
     var verifiedRow = verifiedFmt
       ? '<div class="text-[11px] text-gray-400 mb-1">Dikonfirmasi ' + verifiedFmt + '</div>'
@@ -3893,20 +3914,43 @@ function gasPost_(action, body) {
 
     var html = verifiedRow + '<div class="flex flex-col gap-0.5">';
 
-    bulanArray.forEach(function(bulan, index) {
-      var uid = (item.uidList && item.uidList[index]) ? item.uidList[index] : '-';
-      html +=
-        '<div class="flex items-center justify-between">' +
-          '<span class="text-[11px] text-gray-400">' + bulan + ' ' + (item.tahun || '') + '</span>' +
-          '<span class="text-[11px] font-mono text-gray-500 tracking-tight cursor-pointer active:opacity-60"' +
-            ' onclick="copyToClipboard(this.dataset.uid)" data-uid="' + uid + '">' + uid +
-            '<svg class="w-2.5 h-2.5 inline ml-1 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">' +
-            '<rect x="9" y="9" width="13" height="13" rx="2"/>' +
-            '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
-            '</svg>' +
-          '</span>' +
-        '</div>';
-    });
+    // Format baru: uidList = [{bulan, blok, uid}, ...]
+    var isNewFormat = item.uidList && item.uidList.length > 0 && typeof item.uidList[0] === 'object';
+
+    if (isNewFormat) {
+      item.uidList.forEach(function(entry) {
+        var label = entry.bulan + ' ' + (item.tahun || '') + (entry.blok ? ' (' + entry.blok + ')' : '');
+        var uid = entry.uid || '-';
+        html +=
+          '<div class="flex items-center justify-between">' +
+            '<span class="text-[11px] text-gray-400">' + label + '</span>' +
+            '<span class="text-[11px] font-mono text-gray-500 tracking-tight cursor-pointer active:opacity-60"' +
+              ' onclick="copyToClipboard(this.dataset.uid)" data-uid="' + uid + '">' + uid +
+              '<svg class="w-2.5 h-2.5 inline ml-1 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">' +
+              '<rect x="9" y="9" width="13" height="13" rx="2"/>' +
+              '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+              '</svg>' +
+            '</span>' +
+          '</div>';
+      });
+    } else {
+      // Format lama: uidList = ['uid1', 'uid2']
+      var bulanArray = (item.bulan || '').toString().split(',').map(function(b) { return b.trim(); });
+      bulanArray.forEach(function(bulan, index) {
+        var uid = (item.uidList && item.uidList[index]) ? item.uidList[index] : '-';
+        html +=
+          '<div class="flex items-center justify-between">' +
+            '<span class="text-[11px] text-gray-400">' + bulan + ' ' + (item.tahun || '') + '</span>' +
+            '<span class="text-[11px] font-mono text-gray-500 tracking-tight cursor-pointer active:opacity-60"' +
+              ' onclick="copyToClipboard(this.dataset.uid)" data-uid="' + uid + '">' + uid +
+              '<svg class="w-2.5 h-2.5 inline ml-1 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">' +
+              '<rect x="9" y="9" width="13" height="13" rx="2"/>' +
+              '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+              '</svg>' +
+            '</span>' +
+          '</div>';
+      });
+    }
 
     html += '</div>';
     return html;
@@ -4796,6 +4840,7 @@ function loadHomeTunggakan() {
   nomEl.innerText = 'Memuat...';
   gasGet_('getWargaTunggakan', { email: currentUser.email })
     .then(function(res) {
+      console.log('[tunggakan res]', JSON.stringify(res));
       homeDataCache.tunggakan = res;
       if (!res || !res.ok) {
         nomEl.innerHTML = 'Rp 0';
