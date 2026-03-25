@@ -4858,21 +4858,46 @@ function loadHomeTunggakan() {
         if (labelEl) labelEl.innerText = 'Total Tunggakan';
       }
       if (res.rate) {
-        var card200 = document.getElementById('tarifCard200');
-        var card175 = document.getElementById('tarifCard175');
-        if (card200 && card175) {
-          if (res.rate === 200000) {
-            card200.className = 'px-5 py-3.5 border-r border-gray-50 transition-all duration-300 bg-primary/5';
-            card175.className = 'px-5 py-3.5 transition-all duration-300 opacity-40';
-            card200.querySelector('p:nth-child(1)').className = 'text-[10px] uppercase tracking-widest text-primary font-semibold';
-            card200.querySelector('p:nth-child(2)').className = 'text-base font-black text-primary mt-0.5';
-          } else if (res.rate === 175000) {
-            card175.className = 'px-5 py-3.5 transition-all duration-300 bg-primary/5';
-            card200.className = 'px-5 py-3.5 border-r border-gray-50 transition-all duration-300 opacity-40';
-            card175.querySelector('p:nth-child(1)').className = 'text-[10px] uppercase tracking-widest text-primary font-semibold';
-            card175.querySelector('p:nth-child(2)').className = 'text-base font-black text-primary mt-0.5';
+        updateTarifDisplay_(true);
+
+        var rate200 = Number(res.rate) === 200000;
+        var rate175 = Number(res.rate) === 175000;
+
+        var card200  = document.getElementById('tarifCard200');
+        var card175  = document.getElementById('tarifCard175');
+        var p200nom  = document.getElementById('tarifNominal200');
+        var p175nom  = document.getElementById('tarifNominal175');
+        var p200label = card200 ? card200.querySelector('p:first-child') : null;
+        var p175label = card175 ? card175.querySelector('p:first-child') : null;
+
+        if (card200) {
+          card200.style.background  = rate200 ? 'rgba(67,160,71,0.06)' : '';
+          card200.style.opacity     = rate200 ? '1' : '0.6';
+          card200.style.borderTop   = rate200 ? '2px solid #43A047' : '';
+          if (!document.getElementById('tarifBadge200') && rate200 && p200label) {
+            var badge200 = document.createElement('span');
+            badge200.id = 'tarifBadge200';
+            badge200.style.cssText = 'display:inline-block;font-size:8px;font-weight:700;color:#43A047;background:rgba(67,160,71,0.12);border-radius:4px;padding:1px 5px;margin-left:5px;letter-spacing:0.03em;vertical-align:middle;';
+            badge200.innerText = '✓ Tarif Anda';
+            p200label.appendChild(badge200);
           }
         }
+        if (card175) {
+          card175.style.background  = rate175 ? 'rgba(67,160,71,0.06)' : '';
+          card175.style.opacity     = rate175 ? '1' : '0.6';
+          card175.style.borderTop   = rate175 ? '2px solid #43A047' : '';
+          if (!document.getElementById('tarifBadge175') && rate175 && p175label) {
+            var badge175 = document.createElement('span');
+            badge175.id = 'tarifBadge175';
+            badge175.style.cssText = 'display:inline-block;font-size:8px;font-weight:700;color:#43A047;background:rgba(67,160,71,0.12);border-radius:4px;padding:1px 5px;margin-left:5px;letter-spacing:0.03em;vertical-align:middle;';
+            badge175.innerText = '✓ Tarif Anda';
+            p175label.appendChild(badge175);
+          }
+        }
+        if (p200label) p200label.style.color = rate200 ? '#43A047' : '';
+        if (p200nom)   p200nom.style.color   = rate200 ? '#43A047' : '';
+        if (p175label) p175label.style.color = rate175 ? '#43A047' : '';
+        if (p175nom)   p175nom.style.color   = rate175 ? '#43A047' : '';
       }
     })
     .catch(function() {
