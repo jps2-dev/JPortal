@@ -1,0 +1,997 @@
+
+    .app-input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      font-size: 16px;
+      outline: none;
+    }
+    .app-input:focus {
+      border-color: #43A047;
+      box-shadow: 0 0 0 2px rgba(67,160,71,.15);
+    }
+    
+    /* ===== iOS AUTO-ZOOM FIX ===== */
+    @supports (-webkit-touch-callout: none) {
+      input,
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="number"],
+      input[type="date"],
+      input[type="password"],
+      textarea,
+      select {
+        font-size: 16px !important;
+      }
+    }
+    .chip {
+      padding: 8px 14px;
+      border-radius: 9999px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .chip.active {
+      background: #43A047;
+      color: #fff;
+      border-color: #43A047;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #9ca3af;
+      transition: all .2s ease;
+    }
+    .nav-item .nav-icon {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+    }
+    .nav-item.active {
+      color: #43A047;
+      font-weight: 500;
+    }
+    .nav-item.disabled {
+      opacity: .45;
+    }
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+    }
+    .nav-app.active {
+      color: #43A047;
+      font-weight: 600;
+    }
+    .nav-app.disabled {
+      opacity: .45;
+    }
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+    }
+    .sheet-open {
+      box-shadow: 0 -10px 30px rgba(0,0,0,.25);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-slideUp {
+      animation: slideUp .25s ease-out;
+    }
+
+    /* ===== SECURITY BUTTON ANIMATION ===== */
+    @keyframes securityPulse {
+      0%, 100% { box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3); }
+      50% { box-shadow: 0 4px 20px rgba(67, 160, 71, 0.5); }
+    }
+
+    .security-btn {
+      animation: securityPulse 2s ease-in-out infinite;
+    }
+
+    /* =========================================
+      IPL FORM – FULLSCREEN MODAL (APPLE STYLE)
+    ========================================= */
+
+    #sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #F4F6F8;
+
+      display: flex;
+      flex-direction: column;
+
+      /* Initial hidden state */
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+      pointer-events: none;
+      will-change: opacity, transform;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    /* Active state */
+    body.ipl-form-open #sheet {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      pointer-events: auto;
+    }
+
+    /* Hide bottom nav when form open */
+    nav {
+      transition: opacity .15s ease;
+      will-change: opacity;
+    }
+
+    body.ipl-form-open nav {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    /* Hide bottom nav saat pageSaya aktif */
+    body.saya-open nav {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    /* Prevent background scroll bounce */
+    body {
+      overscroll-behavior-y: none;
+    }
+
+    #overlay {
+      overscroll-behavior: none;
+    }
+
+    /* Sheet scrolling area */
+    .sheet-content {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+    }
+
+    .sheet-handle {
+      flex-shrink: 0;
+      touch-action: pan-y;
+    }
+
+    /* =========================================
+      TOAST (SMOOTH + FLOATING)
+    ========================================= */
+
+    #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(16px);
+
+    max-width: calc(100vw - 32px);
+    padding: 14px 18px;
+    border-radius: 16px;
+
+    background: #ffffff;
+    color: #1f2937;
+    font-size: 14px;
+    font-weight: 500;
+
+    box-shadow:
+      0 10px 25px rgba(0,0,0,.15),
+      0 2px 6px rgba(0,0,0,.08);
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9000;
+
+    transition:
+      opacity .25s ease,
+      transform .25s ease;
+  }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* =========================================
+      MICRO ANIMATIONS
+    ========================================= */
+
+    @keyframes fadeInSoft {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fadeIn {
+      animation: fadeInSoft 0.25s ease-out;
+    }
+
+    /* Search loading */
+    .searching {
+      animation: spin 1s linear infinite;
+    }
+
+    .searching-pulse {
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* =========================================
+      Z-INDEX LAYERING
+    ========================================= */
+
+    #confirmModal {
+      z-index: 9999;
+    }
+
+    #paymentSuccessBanner {
+      z-index: 400;
+    }
+
+  /* Success banner HARUS PALING ATAS */
+  #paymentSuccessBanner {
+    z-index: 400;
+  }
+  /* ===== SUBMIT BUTTON SAFE SPACING ===== */
+  #submitBtn {
+    margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  }
+  
+  /* =========================
+   CHIP TAHUN (BUTTON FEEL)
+  ========================= */
+  .chip-year {
+    padding: 10px 18px;
+    border-radius: 9999px;
+    border: 1.5px solid #d1d5db;
+
+    background: #f9fafb;
+    color: #374151;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+    user-select: none;
+
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
+  }
+
+  .chip-year:hover {
+    background: #f3f4f6;
+  }
+
+  .chip-year:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(67,160,71,0.25);
+  }
+
+  .chip-year.active {
+    background: #43A047;
+    color: #ffffff;
+    border-color: #43A047;
+    box-shadow: 0 4px 10px rgba(67,160,71,0.25);
+  }
+
+  /* =========================
+    HUNIAN CARD (STRONG CTA)
+  ========================= */
+  .hunian-card {
+    border-radius: 18px;
+    padding: 16px;
+
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+
+    text-align: center;
+    color: #374151;
+
+    cursor: pointer;
+    user-select: none;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: all 0.2s ease;
+  }
+
+  .hunian-card:hover {
+    background: #f9fafb;
+  }
+
+  .hunian-card.active {
+    border-color: #43A047;
+    background: #ecf7ee;
+    color: #1b5e20;
+
+    box-shadow: 0 6px 16px rgba(67,160,71,0.25);
+  }
+
+  .hunian-card .price {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
+  /* ===== iOS SAFE DATE INPUT (SOFT VERSION) ===== */
+  .app-date {
+    line-height: 1.2;          /* ⬅️ cegah height membengkak */
+    height: 48px;              /* ⬅️ kunci tinggi */
+    padding-top: 0;
+    padding-bottom: 0;
+
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* ⛑️ iOS: cegah native overlay keluar container */
+  .app-date {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* ===== iOS DATE CONTAINER FIX (FINAL) ===== */
+  .ios-date-container {
+    overflow: hidden;   /* ⬅️ INI KUNCINYA */
+  }
+  /* =========================
+   iOS DATE INPUT – FINAL FIX
+   ========================= */
+  .app-date {
+    display: block;              /* ⬅️ KUNCI: paksa full width */
+    width: 100%;
+    box-sizing: border-box;
+
+    height: 48px;
+    line-height: 48px;
+
+    padding: 0 14px;
+    background: #ffffff;
+
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Safari iOS internal date text */
+  .app-date::-webkit-date-and-time-value {
+    text-align: center;
+    height: 48px;
+    line-height: 48px;
+  }
+
+  /* Container wajib potong overflow */
+  .ios-date-container {
+    overflow: hidden;
+  }
+  /* ===== ERROR CONTAINER (NON INPUT) ===== */
+  .field-error {
+    border: 1.5px solid #ef4444; /* red-500 */
+    border-radius: 16px;
+    background: rgba(239, 68, 68, 0.04);
+  }
+  @keyframes softShake {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-4px); }
+    40%  { transform: translateX(4px); }
+    60%  { transform: translateX(-3px); }
+    80%  { transform: translateX(3px); }
+    100% { transform: translateX(0); }
+  }
+
+  .shake {
+    animation: softShake 0.35s ease;
+  }
+  /* ===== SUBMIT BUTTON DISABLED STATE ===== */
+  #submitBtn:disabled {
+    background: #9ca3af !important;   /* abu Tailwind gray-400 */
+    color: #ffffff;
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  /* ===== AUTOFILLED INPUT (SYSTEM-FILLED, BUT ACTIVE) ===== */
+  .app-input.autofilled {
+    color: #111827;          /* gray-900 (gelap, readable) */
+    background-color: #f9fafb;
+  }
+
+  /* Saat user mulai mengetik → hapus style autofill */
+  .app-input.autofilled:focus {
+    color: #111827;
+  }
+
+  /* ===== DASHBOARD TAB BUTTON ===== */
+  .tab-btn {
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all .2s ease;
+  }
+
+  .tab-btn.active {
+    background: #43A047;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(67,160,71,.25);
+  }
+
+  #buktiViewer.hidden {
+    pointer-events: none;
+  }
+
+  #dashboardList {
+    position: relative;
+    z-index: 1;
+  }
+
+  #dashboard {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+
+  #dashboard:not(.hidden) {
+    opacity: 1;
+  }
+
+  .tab-underline {
+    position: relative;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all .2s ease;
+  }
+
+  /* ===== TAB PILL ===== */
+  .tab-pill.active {
+    background: #FEF9C3;
+    color: #854D0E;
+    border-color: #FDE047;
+  }
+
+  #tabConfirmed.tab-pill.active {
+    background: #F0FDF4;
+    color: #166534;
+    border-color: #86EFAC;
+  }
+
+  #tabConfirmed.tab-pill.active span:last-child {
+    background: #BBF7D0;
+    color: #166534;
+  }
+
+  .tab-underline.active {
+    color: #16a34a;
+    font-weight: 600;
+  }
+
+  .tab-underline.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #16a34a;
+    border-radius: 2px;
+  }
+
+  .filter-date-chip {
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    white-space: nowrap;
+    transition: all .2s ease;
+  }
+
+  .filter-date-chip.active {
+    background: #16a34a;
+    color: white;
+    border-color: #16a34a;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+      min-height: 42px;
+  }
+
+  /* Remove iOS internal styling glitch */
+  input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+
+  /* ===== DASHBOARD DATE FILTER CLEAN STYLE ===== */
+  #customRangePanel input[type="date"] {
+    height: 48px;
+    padding: 0 14px;
+    line-height: 48px;
+    box-sizing: border-box;
+  }
+
+  /* ===== iOS DATE WIDTH HARD FIX ===== */
+  #customRangePanel input[type="date"] {
+    width: 100%;
+    min-width: 0;              /* 🔥 penting */
+    max-width: 100%;
+    display: block;
+
+    -webkit-appearance: none;  /* 🔥 remove intrinsic sizing */
+    appearance: none;
+
+    box-sizing: border-box;
+  }
+
+  .nav-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #9CA3AF;
+    transition: all 0.2s ease;
+    min-width: 60px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  .nav-app.active {
+    color: #43A047;
+    background-color: #F0FBF0;
+    font-weight: 600;
+  }
+
+  .nav-app.active svg {
+    stroke: #43A047;
+  }
+
+  .nav-app.active {
+    color: #43A047;
+  }
+
+  /* DOT INDICATOR */
+  .nav-app.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0px;      /* 🔥 fix */
+    width: 16px;
+    height: 3px;
+    background: #43A047;
+    border-radius: 9999px;
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  .blok-chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:8px 14px;
+    margin:6px 6px 0 0;
+
+    font-size:14px;
+    font-weight:500;
+
+    border-radius:10px;
+
+    background:#f3f4f6;
+    color:#374151;
+
+    border:1px solid transparent;
+
+    transition:all .15s ease;
+    cursor:pointer;
+  }
+
+  .blok-chip:hover{
+    background:#e5e7eb;
+  }
+
+  .blok-chip.active{
+    background:#E8F5E9;
+    border-color:#81C784;
+    color:#2E7D32;
+  }
+
+  @keyframes shake {
+    0%{transform:translateX(0)}
+    25%{transform:translateX(-6px)}
+    50%{transform:translateX(6px)}
+    75%{transform:translateX(-6px)}
+    100%{transform:translateX(0)}
+  }
+
+  .shake{
+      animation:shake .35s;
+    }
+
+    .animate-suggest{
+    animation:fadeSuggest .18s ease;
+  }
+
+  @keyframes fadeSuggest{
+    from{
+      opacity:0;
+      transform:translateY(4px);
+    }
+    to{
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
+
+  .hero-illus {
+    animation: heroFloat 4s ease-in-out infinite;
+  }
+
+  @keyframes heroFloat {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0px); }
+  }
+
+  @keyframes shakeInput {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+  }
+
+  .shake{
+    animation: shakeInput 0.35s ease;
+  }
+
+  @keyframes errorPulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  .error-pulse{
+    animation: errorPulse .25s ease;
+  }
+
+  .otp-box{
+    width:44px;
+    height:48px;
+
+    text-align:center;
+    font-size:20px;
+    font-weight:600;
+
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+    background:#f9fafb;
+
+    transition:all .15s ease;
+  }
+
+  .otp-box:focus{
+    outline:none;
+    border-color:#43A047;
+    box-shadow:0 0 0 2px rgba(67,160,71,.15);
+    background:white;
+  }
+
+  .otp-box.filled {
+    border-color: #43A047;
+    background: #f0fdf4;
+    color: #1b5e20;
+  }
+
+  /* ===== APP PAGE SYSTEM ===== */
+  .app-page{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transform: translate3d(8%,0,0);
+    -webkit-transform: translate3d(8%,0,0);
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+
+    transition: transform .22s ease, opacity .18s ease;
+
+    will-change: transform, opacity;
+  }
+
+  /* hidden page */
+  .app-page.hidden{
+    opacity:0;
+    pointer-events:none;
+    visibility: hidden;
+    transform:translate3d(8%,0,0);
+    -webkit-transform:translate3d(8%,0,0);
+  }
+
+  /* active page */
+  .app-page.active{
+    opacity:1;
+    visibility: visible;
+    transform:translate3d(0,0,0);
+    -webkit-transform:translate3d(0,0,0);
+    pointer-events:auto;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes splashBlurIn {
+    0%   { opacity: 0; filter: blur(16px); transform: scale(0.94); }
+    60%  { opacity: 1; filter: blur(2px);  transform: scale(1.01); }
+    100% { opacity: 1; filter: blur(0px);  transform: scale(1);    }
+  }
+
+  @keyframes splashDotsIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .splash-wordmark {
+    opacity: 0;
+    animation: splashBlurIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: 0.15s;
+  }
+
+  .splash-dots {
+    opacity: 0;
+    animation: splashDotsIn 0.4s ease forwards;
+    animation-delay: 0.8s;
+  }
+
+  /* ===== PAGE SAYA STEP TRANSITION ===== */
+  .saya-step {
+    animation: sayaStepIn 0.25s ease forwards;
+  }
+
+  /* Fix hidden/flex step system */
+  #sayaStepEmail,
+  #sayaStepOTP,
+  #sayaLoggedInView {
+    display: none;
+  }
+
+  #sayaStepEmail:not(.hidden),
+  #sayaStepOTP:not(.hidden),
+  #sayaLoggedInView:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  @keyframes sayaStepIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== DESKTOP SHELL ===== */
+  @media (min-width: 768px) {
+    body {
+      background: #E8EDE8;
+    }
+
+    #appShell {
+      max-width: 960px;
+      margin: 0 auto;
+      position: relative;
+      background: #F4F6F8;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    }
+
+    /* Header dikunci ke dalam appShell */
+    header {
+      position: absolute !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      transform: none !important;
+      max-width: 100% !important;
+    }
+
+    /* Nav dikunci ke dalam appShell */
+    nav {
+      position: absolute !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      transform: none !important;
+      max-width: 100% !important;
+    }
+
+    /* Security button dikunci ke dalam appShell */
+    #securityBtn {
+      position: fixed !important;
+      right: calc(50% - 480px + 16px) !important;
+      bottom: 96px !important;
+      left: auto !important;
+      transform: none !important;
+    }
+
+    /* Pages fixed — constrain ke appShell width */
+    #dashboard,
+    #pageSaya,
+    #explorePage,
+    #formMudik,
+    #formRenovasi,
+    #sheet {
+      left: 50% !important;
+      right: auto !important;
+      transform: translateX(-50%) !important;
+      width: 960px !important;
+      max-width: 960px !important;
+      min-width: 960px !important;
+    }
+
+    /* Inner scroll area pages — full width dalam container */
+    #dashboard .flex-1,
+    #pageSaya .flex-1,
+    #explorePage .flex-1,
+    #formMudik .flex-1,
+    #formRenovasi .flex-1,
+    #sheet .flex-1 {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    /* Header tiap page — full width dalam container */
+    #dashboard > div:first-child,
+    #pageSaya > div > div:first-child,
+    #explorePage > div:first-child,
+    #formMudik > div:first-child,
+    #formRenovasi > div:first-child,
+    #sheet > div:first-child {
+      width: 100% !important;
+      max-width: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+      transform: none !important;
+    }
+
+    /* Semua fixed modals/overlays tetap full viewport */
+    #sheet,
+    #overlay,
+    #confirmModal,
+    #loginModal,
+    #paymentSuccessBanner,
+    #buktiViewer,
+    #comingSoon,
+    #logoutConfirmModal,
+    #loginRequiredModal,
+    #feedbackModal,
+    #tunggakanModal,
+    #infoArtikelModal,
+    #adminBayarPicker,
+    #contactModal,
+    #splashScreen,
+    #toast,
+    #dashboard,
+    #pageSaya,
+    #explorePage,
+    #formMudik,
+    #formRenovasi,
+    #pedomanViewer,
+    #securityOverlay,
+    #stickyCTA {
+      left: 0 !important;
+      right: 0 !important;
+      transform: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* ===== FAB BAYAR ANIMATIONS ===== */
+  @keyframes haloPulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.13);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ringPulse {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.1);
+      opacity: 0;
+    }
+  }
+
+  @keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* ===== SOS BUTTON — static, no animation ===== */
+  .security-btn {
+    animation: none !important;
+    box-shadow: 0 4px 14px rgba(229,57,53,0.45);
+  }
+
+  /* ===== PEDOMAN / KAS IPL VIEWER ===== */
+  #pedomanViewer {
+    touch-action: pan-x pan-y;
+  }
+
+  #pedomanViewerFrame {
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+    /* Cegah iOS reload saat pinch zoom */
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Wrapper iframe — cegah overflow trigger reload */
+  #pedomanViewer .flex-1 {
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
