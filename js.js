@@ -4905,15 +4905,40 @@ function loadHomeTunggakan() {
       if (res.rate) {
         updateTarifDisplay_(true);
 
-        var rate200 = Number(res.rate) === 200000;
-        var rate175 = Number(res.rate) === 175000;
+        var isMultiBlok = res.bloks && res.bloks.length > 1;
+        var allSame200 = isMultiBlok && (Number(res.rate) % 200000 === 0) && (Number(res.rate) / 200000 === res.bloks.length);
+        var allSame175 = isMultiBlok && (Number(res.rate) % 175000 === 0) && (Number(res.rate) / 175000 === res.bloks.length);
+        var mixedRate  = isMultiBlok && !allSame200 && !allSame175;
 
-        var card200  = document.getElementById('tarifCard200');
-        var card175  = document.getElementById('tarifCard175');
-        var p200nom  = document.getElementById('tarifNominal200');
-        var p175nom  = document.getElementById('tarifNominal175');
+        var rate200 = Number(res.rate) === 200000 || allSame200 || mixedRate;
+        var rate175 = Number(res.rate) === 175000 || allSame175 || mixedRate;
+
+        var card200   = document.getElementById('tarifCard200');
+        var card175   = document.getElementById('tarifCard175');
+        var p200nom   = document.getElementById('tarifNominal200');
+        var p175nom   = document.getElementById('tarifNominal175');
         var p200label = card200 ? card200.querySelector('p:first-child') : null;
         var p175label = card175 ? card175.querySelector('p:first-child') : null;
+
+        // Hitung label blok per card
+        var blokLabel200 = '';
+        var blokLabel175 = '';
+        if (isMultiBlok && res.bloks) {
+          var allBloks = res.bloks.join(' & ');
+          if (allSame200) {
+            blokLabel200 = ' (' + allBloks + ')';
+            blokLabel175 = '';
+          } else if (allSame175) {
+            blokLabel200 = '';
+            blokLabel175 = ' (' + allBloks + ')';
+          } else {
+            var rateByBlok = res.rateByBlok || {};
+            var bloks200 = res.bloks.filter(function(b) { return (rateByBlok[b] || 0) >= 200000; });
+            var bloks175 = res.bloks.filter(function(b) { return (rateByBlok[b] || 0) < 200000 && (rateByBlok[b] || 0) > 0; });
+            blokLabel200 = bloks200.length ? ' (' + bloks200.join(' & ') + ')' : '';
+            blokLabel175 = bloks175.length ? ' (' + bloks175.join(' & ') + ')' : '';
+          }
+        }
 
         if (card200) {
           card200.style.background  = rate200 ? 'rgba(67,160,71,0.06)' : '';
@@ -4926,6 +4951,13 @@ function loadHomeTunggakan() {
             badge200.innerText = '✓ Tarif Anda';
             p200label.appendChild(badge200);
           }
+          if (isMultiBlok && blokLabel200 && !document.getElementById('tarifBlokLabel200') && p200label) {
+            var blokSpan200 = document.createElement('span');
+            blokSpan200.id = 'tarifBlokLabel200';
+            blokSpan200.style.cssText = 'display:block;font-size:9px;color:#43A047;font-weight:600;margin-top:2px;';
+            blokSpan200.innerText = blokLabel200;
+            p200label.appendChild(blokSpan200);
+          }
         }
         if (card175) {
           card175.style.background  = rate175 ? 'rgba(67,160,71,0.06)' : '';
@@ -4937,6 +4969,13 @@ function loadHomeTunggakan() {
             badge175.style.cssText = 'display:inline-block;font-size:8px;font-weight:700;color:#43A047;background:rgba(67,160,71,0.12);border-radius:4px;padding:1px 5px;margin-left:5px;letter-spacing:0.03em;vertical-align:middle;';
             badge175.innerText = '✓ Tarif Anda';
             p175label.appendChild(badge175);
+          }
+          if (isMultiBlok && blokLabel175 && !document.getElementById('tarifBlokLabel175') && p175label) {
+            var blokSpan175 = document.createElement('span');
+            blokSpan175.id = 'tarifBlokLabel175';
+            blokSpan175.style.cssText = 'display:block;font-size:9px;color:#43A047;font-weight:600;margin-top:2px;';
+            blokSpan175.innerText = blokLabel175;
+            p175label.appendChild(blokSpan175);
           }
         }
         if (p200label) p200label.style.color = rate200 ? '#43A047' : '';
