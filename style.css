@@ -995,3 +995,14 @@
     touch-action: pan-x pan-y;
   }
 
+  #sayaStepOTP {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #sayaStepOTP .otp-box {
+    width: 40px;
+    height: 44px;
+    font-size: 18px;
+  }

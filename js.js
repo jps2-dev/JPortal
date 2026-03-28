@@ -3064,6 +3064,10 @@ function gasPost_(action, body) {
               emailStep.style.opacity = '';
               emailStep.style.transform = '';
               otpStep.classList.remove('hidden');
+              otpStep.style.display = 'flex';
+              otpStep.style.flexDirection = 'column';
+              otpStep.style.height = '100%';
+              otpStep.style.overflowY = 'auto';
               otpStep.classList.add('saya-step');
               setTimeout(function() { otpStep.classList.remove('saya-step'); }, 300);
             }, 180);
@@ -3133,7 +3137,12 @@ function gasPost_(action, body) {
               currentUser.wargaData = dataRes.data || [];
             }
           });
-        document.getElementById('sayaStepOTP').classList.add('hidden');
+        var otpStepEl = document.getElementById('sayaStepOTP');
+        otpStepEl.classList.add('hidden');
+        otpStepEl.style.display = '';
+        otpStepEl.style.flexDirection = '';
+        otpStepEl.style.height = '';
+        otpStepEl.style.overflowY = '';
         document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
         document.getElementById('sayaProfileEmail').innerText = res.user.email;
         document.getElementById('sayaLoggedInView').classList.remove('hidden');
