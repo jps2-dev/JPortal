@@ -4879,10 +4879,57 @@ function loadHomeTunggakan() {
           nomEl.innerText = 'Rp 0';
           nomEl.style.fontSize = '1.5rem';
         }
+
+        // === HITUNG FASE JATUH TEMPO ===
+        var dueDatePhase = 'normal'; // normal | warning | overdue | late
+        var dueBadgeText = '';
+        var cardBg = hasUpcoming ? '#2E7D32' : 'linear-gradient(135deg, #1B5E20, #2E7D32)';
+
+        if (hasUpcoming && res.dueDate) {
+          var today = new Date();
+          // var today = new Date('2026-04-25');
+          today.setHours(0, 0, 0, 0);
+          var due = new Date(res.dueDate);
+          due.setHours(0, 0, 0, 0);
+          var diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
+
+          if (diffDays > 7) {
+            // Normal — hijau
+            dueDatePhase = 'normal';
+          } else if (diffDays >= 1) {
+            // Reminder H-7 s/d H-1 — kuning
+            dueDatePhase = 'reminder';
+            dueBadgeText = 'bell|Jatuh tempo ' + diffDays + ' hari lagi';
+            cardBg = 'linear-gradient(135deg, #713f12, #ca8a04)';
+          } else if (diffDays === 0) {
+            // Hari H — oranye
+            dueDatePhase = 'due';
+            dueBadgeText = 'clock|Jatuh tempo hari ini';
+            cardBg = 'linear-gradient(135deg, #7c2d12, #ea580c)';
+          } else if (diffDays >= -7) {
+            // Overdue H+1 s/d H+7 — merah
+            dueDatePhase = 'overdue';
+            dueBadgeText = 'alert|Terlambat ' + Math.abs(diffDays) + ' hari';
+            cardBg = 'linear-gradient(135deg, #7f1d1d, #b91c1c)';
+          } else {
+            // Late H+7+ — merah gelap
+            dueDatePhase = 'late';
+            dueBadgeText = 'alert|Terlambat ' + Math.abs(diffDays) + ' hari';
+            cardBg = 'linear-gradient(135deg, #3b0a0a, #7f1d1d)';
+          }
+        }
+
         badgeEl.innerHTML = '<span style="display:flex;align-items:center;gap:5px;"><svg style="width:13px;height:13px;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Lunas</span>';
         badgeEl.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white';
         var labelEl = document.querySelector('#homeTunggakanCard .text-green-200');
-        if (labelEl) labelEl.innerText = hasUpcoming ? 'Tagihan Berikutnya' : 'Status IPL';
+        var cardLabel = 'Status IPL';
+        if (hasUpcoming) {
+          if (dueDatePhase === 'due') cardLabel = 'Jatuh Tempo Hari Ini';
+          else if (dueDatePhase === 'overdue') cardLabel = 'Segera Lunasi';
+          else if (dueDatePhase === 'late') cardLabel = 'Tunggakan Belum Dibayar';
+          else cardLabel = 'Tagihan Berikutnya';
+        }
+        if (labelEl) labelEl.innerText = cardLabel;
         var monthEl2 = document.getElementById('homeIplMonth');
         if (monthEl2) {
           if (hasUpcoming) {
@@ -4891,9 +4938,35 @@ function loadHomeTunggakan() {
             monthEl2.innerText = 'Tidak ada tagihan saat ini';
           }
         }
+
+        // Tambah badge fase jatuh tempo
+        var existingDueBadge = document.getElementById('dueDateBadge');
+        if (existingDueBadge) existingDueBadge.remove();
+        if (dueBadgeText) {
+          var badgeParts = dueBadgeText.split('|');
+          var badgeIcon  = badgeParts[0];
+          var badgeLabel = badgeParts[1] || '';
+
+          var iconSvg = '';
+          if (badgeIcon === 'bell') {
+            iconSvg = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+          } else if (badgeIcon === 'clock') {
+            iconSvg = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+          } else if (badgeIcon === 'alert') {
+            iconSvg = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+          }
+
+          var dueBadgeEl = document.createElement('div');
+          dueBadgeEl.id = 'dueDateBadge';
+          dueBadgeEl.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.92);margin-top:6px;';
+          dueBadgeEl.innerHTML = iconSvg + '<span>' + badgeLabel + '</span>';
+          var nomParent = nomEl.parentElement;
+          if (nomParent) nomParent.appendChild(dueBadgeEl);
+        }
+
         var card = document.getElementById('homeTunggakanCard');
         if (card) {
-          card.style.background = hasUpcoming ? '#2E7D32' : 'linear-gradient(135deg, #1B5E20, #2E7D32)';
+          card.style.background = cardBg;
         }
       } else {
         nomEl.innerText = 'Rp ' + Number(res.total).toLocaleString('id-ID');
@@ -4901,6 +4974,64 @@ function loadHomeTunggakan() {
         badgeEl.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-red-400/80 text-white';
         var labelEl = document.querySelector('#homeTunggakanCard .text-green-200');
         if (labelEl) labelEl.innerText = 'Total Tunggakan';
+
+        // Hitung fase overdue untuk tunggakan
+        if (res.dueDate) {
+          var todayOvd = new Date();
+          todayOvd.setHours(0, 0, 0, 0);
+          var dueOvd = new Date(res.dueDate);
+          dueOvd.setHours(0, 0, 0, 0);
+          var diffOvd = Math.round((dueOvd - todayOvd) / (1000 * 60 * 60 * 24));
+
+          var ovdBg = '';
+          var ovdBadgeIcon = '';
+          var ovdBadgeText = '';
+
+          if (diffOvd >= 1) {
+            ovdBg = 'linear-gradient(135deg, #713f12, #ca8a04)';
+            ovdBadgeIcon = 'bell';
+            ovdBadgeText = 'Jatuh tempo ' + diffOvd + ' hari lagi';
+          } else if (diffOvd === 0) {
+            ovdBg = 'linear-gradient(135deg, #7c2d12, #ea580c)';
+            ovdBadgeIcon = 'clock';
+            ovdBadgeText = 'Jatuh tempo hari ini';
+            if (labelEl) labelEl.innerText = 'Jatuh Tempo Hari Ini';
+          } else if (diffOvd >= -7) {
+            ovdBg = 'linear-gradient(135deg, #7f1d1d, #b91c1c)';
+            ovdBadgeIcon = 'alert';
+            ovdBadgeText = 'Terlambat ' + Math.abs(diffOvd) + ' hari';
+            if (labelEl) labelEl.innerText = 'Segera Lunasi';
+          } else {
+            ovdBg = 'linear-gradient(135deg, #3b0a0a, #7f1d1d)';
+            ovdBadgeIcon = 'alert';
+            ovdBadgeText = 'Terlambat ' + Math.abs(diffOvd) + ' hari';
+            if (labelEl) labelEl.innerText = 'Tunggakan Belum Dibayar';
+          }
+
+          var cardOvd = document.getElementById('homeTunggakanCard');
+          if (cardOvd && ovdBg) cardOvd.style.background = ovdBg;
+
+          // Render badge
+          var existingOvdBadge = document.getElementById('dueDateBadge');
+          if (existingOvdBadge) existingOvdBadge.remove();
+
+          if (ovdBadgeText) {
+            var iconSvgOvd = '';
+            if (ovdBadgeIcon === 'bell') {
+              iconSvgOvd = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+            } else if (ovdBadgeIcon === 'clock') {
+              iconSvgOvd = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+            } else if (ovdBadgeIcon === 'alert') {
+              iconSvgOvd = '<svg style="width:13px;height:13px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+            }
+            var ovdBadgeEl = document.createElement('div');
+            ovdBadgeEl.id = 'dueDateBadge';
+            ovdBadgeEl.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.92);margin-top:6px;';
+            ovdBadgeEl.innerHTML = iconSvgOvd + '<span>' + ovdBadgeText + '</span>';
+            var nomParentOvd = nomEl.parentElement;
+            if (nomParentOvd) nomParentOvd.appendChild(ovdBadgeEl);
+          }
+        }
       }
       if (res.rate) {
         updateTarifDisplay_(true);
@@ -5011,17 +5142,61 @@ function openTunggakanDetail() {
   blokEl.innerText  = 'Blok ' + (cache.blok || '-');
   totalEl.innerText = 'Rp ' + Number(cache.total || 0).toLocaleString('id-ID');
 
+  // Tambah info jatuh tempo di modal
+  var existingDueInfo = document.getElementById('tunggakanModalDueInfo');
+  if (existingDueInfo) existingDueInfo.remove();
+
+  if (cache.dueDate && cache.upcoming > 0) {
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var due = new Date(cache.dueDate);
+    due.setHours(0, 0, 0, 0);
+    var diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
+
+    var dueText = '';
+    var dueColor = '';
+    if (diffDays > 7) {
+      dueText = 'Jatuh tempo ' + due.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      dueColor = '#43A047';
+    } else if (diffDays >= 1) {
+      dueText = '🔔 Jatuh tempo ' + diffDays + ' hari lagi (' + due.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ')';
+      dueColor = '#b45309';
+    } else if (diffDays === 0) {
+      dueText = '⏰ Jatuh tempo hari ini';
+      dueColor = '#ea580c';
+    } else if (diffDays >= -7) {
+      dueText = '⚠️ Terlambat ' + Math.abs(diffDays) + ' hari';
+      dueColor = '#b91c1c';
+    } else {
+      dueText = '⚠️ Terlambat ' + Math.abs(diffDays) + ' hari';
+      dueColor = '#7f1d1d';
+    }
+
+    var dueInfoEl = document.createElement('div');
+    dueInfoEl.id = 'tunggakanModalDueInfo';
+    dueInfoEl.style.cssText = 'font-size:12px;font-weight:600;color:' + dueColor + ';padding:8px 0 4px 0;';
+    dueInfoEl.innerText = dueText;
+    blokEl.parentElement.insertBefore(dueInfoEl, blokEl.nextSibling);
+  }
+
+  var upcomingItem = cache.upcomingItem || null;
+  var grandTotal = (cache.total || 0) + (upcomingItem ? upcomingItem.amount : 0);
+
   if (!cache.items || cache.items.length === 0) {
-    listEl.innerHTML =
-      '<div class="flex flex-col items-center py-6 gap-2">' +
-        '<div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">' +
-          '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' +
-            '<path d="M20 6L9 17l-5-5"/>' +
-          '</svg>' +
-        '</div>' +
-        '<p class="text-sm font-semibold text-gray-900">Semua lunas!</p>' +
-        '<p class="text-xs text-gray-400">Tidak ada tunggakan IPL</p>' +
-      '</div>';
+    if (!upcomingItem) {
+      listEl.innerHTML =
+        '<div class="flex flex-col items-center py-6 gap-2">' +
+          '<div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center">' +
+            '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' +
+              '<path d="M20 6L9 17l-5-5"/>' +
+            '</svg>' +
+          '</div>' +
+          '<p class="text-sm font-semibold text-gray-900">Semua lunas!</p>' +
+          '<p class="text-xs text-gray-400">Tidak ada tunggakan IPL</p>' +
+        '</div>';
+    } else {
+      listEl.innerHTML = '';
+    }
   } else {
     listEl.innerHTML = cache.items.map(function(d) {
       var amt = 'Rp ' + Number(d.amount || 0).toLocaleString('id-ID');
@@ -5036,6 +5211,27 @@ function openTunggakanDetail() {
         '<span class="text-sm font-semibold" style="color:' + (isOverdue ? '#dc2626' : '#374151') + ';">' + amt + '</span>' +
       '</div>';
     }).join('');
+  }
+
+  // Tambah upcoming item jika ada
+  if (upcomingItem) {
+    var upAmt = 'Rp ' + Number(upcomingItem.amount).toLocaleString('id-ID');
+    var upLbl = upcomingItem.name + ' ' + upcomingItem.year + ' (Upcoming)';
+    listEl.innerHTML +=
+      '<div class="flex justify-between items-center py-3 border-b border-gray-50 last:border-0">' +
+        '<div class="flex items-center gap-2.5">' +
+          '<div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#0d9488;"></div>' +
+          '<span class="text-sm" style="color:#0d9488;">' + upLbl + '</span>' +
+        '</div>' +
+        '<span class="text-sm font-semibold" style="color:#0d9488;">' + upAmt + '</span>' +
+      '</div>';
+  }
+
+  // Update total & tombol bayar
+  totalEl.innerText = 'Rp ' + Number(grandTotal).toLocaleString('id-ID');
+  var bayarBtn = document.getElementById('tunggakanBayarBtn');
+  if (bayarBtn) {
+    bayarBtn.innerText = 'Bayar Sekarang';
   }
 
   modal.classList.remove('hidden');
