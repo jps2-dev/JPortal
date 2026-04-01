@@ -523,7 +523,7 @@ function gasPost_(action, body) {
         .filter(Boolean);
 
       // Format: 1 huruf + 1-3 angka
-      const regex = /^[A-Z][0-9]{1,3}$/;
+      const regex = /^[A-Z][0-9]{1,3}[A-Z]?$/;
 
       return parts.every(part => regex.test(part));
     }
