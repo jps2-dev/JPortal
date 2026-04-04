@@ -1742,21 +1742,22 @@
 
 <!-- ===== MODERN TOAST (CENTERED) ===== -->
 <div id="toast"
-     class="fixed inset-x-0 bottom-6 z-[9999] hidden
+     class="fixed inset-x-0 z-[9999] hidden
             flex items-center justify-center
-            pointer-events-none">
+            pointer-events-none"
+     style="bottom: calc(84px + 16px);">
 
   <div id="toastInner"
-       class="max-w-sm w-[90%]
-              rounded-2xl
-              shadow-xl
-              px-4 py-3
-              bg-white
-              flex items-center gap-3
-              transition-all duration-300
-              opacity-0
-              translate-y-3
-              pointer-events-auto">
+     class="rounded-2xl
+            shadow-lg
+            px-4 py-2.5
+            bg-white
+            flex items-center gap-2.5
+            transition-all duration-300
+            opacity-0
+            translate-y-3
+            pointer-events-auto"
+     style="max-width:320px;min-width:0;">
   </div>
 
 </div>
@@ -1968,6 +1969,22 @@
 
     <!-- DATE FILTER — admin only -->
     <div id="dashboardFilterRow" class="flex items-center gap-2 overflow-x-auto">
+      <select id="monthFilterSelect"
+              style="font-size:14px; min-width:120px; height:36px; padding:0 10px; border-radius:12px; border:1px solid #e5e7eb; background:#fff; color:#374151; cursor:pointer; flex-shrink:0;">
+        <option value="">Semua Bulan</option>
+        <option value="Jan">Januari</option>
+        <option value="Feb">Februari</option>
+        <option value="Mar">Maret</option>
+        <option value="Apr">April</option>
+        <option value="Mei">Mei</option>
+        <option value="Jun">Juni</option>
+        <option value="Jul">Juli</option>
+        <option value="Agu">Agustus</option>
+        <option value="Sep">September</option>
+        <option value="Okt">Oktober</option>
+        <option value="Nov">November</option>
+        <option value="Des">Desember</option>
+      </select>
       <button class="filter-date-chip active">All</button>
       <button class="filter-date-chip">Today</button>
       <button class="filter-date-chip">Yesterday</button>
@@ -2103,13 +2120,85 @@
       <button id="requestOTPBtn" onclick="requestOTPSaya()"
               class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-base
                      active:scale-95 transition shadow-md shadow-primary/20 mt-2">
-        Kirim Kode OTP
+        Masuk
       </button>
     </div>
   </div>
 
+  <!-- ===== STEP: METHOD (PIN atau OTP) ===== -->
+  <div id="sayaStepMethod" class="hidden flex-col h-full">
+
+    <!-- HEADER -->
+    <div class="bg-white px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+      <button onclick="backToEmailStep()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center active:scale-95 transition flex-shrink-0">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-base font-semibold text-gray-900">Pilih Metode Login</h1>
+        <p id="sayaMethodEmail" class="text-xs text-gray-400 mt-0.5"></p>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="px-5 pt-8 pb-6 flex flex-col gap-5">
+
+      <!-- PIN INPUT AREA -->
+      <div class="flex flex-col gap-3">
+        <label class="text-xs font-medium text-gray-400 text-center">Masukkan 6 digit PIN kamu</label>
+        <input id="sayaPINLoginInput"
+              type="password"
+              maxlength="6"
+              inputmode="numeric"
+              placeholder="••••••"
+              class="w-full bg-gray-50 text-gray-900 text-3xl tracking-[0.6em] text-center
+                      rounded-2xl border border-gray-100 px-4 py-4
+                      focus:ring-0 focus:outline-none focus:border-primary focus:bg-white
+                      placeholder:text-gray-200 transition">
+        <div id="sayaPINLoginError" class="hidden text-xs text-red-500 text-center -mt-1"></div>
+      </div>
+
+      <!-- LOGIN BUTTON -->
+      <button id="sayaPINLoginBtn"
+              onclick="loginWithPINSaya()"
+              class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-base
+                    active:scale-95 transition">
+        Masuk dengan PIN
+      </button>
+
+      <!-- DIVIDER -->
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-gray-150"></div>
+        <span class="text-xs text-gray-300 font-medium">atau</span>
+        <div class="flex-1 h-px bg-gray-150"></div>
+      </div>
+
+      <!-- SWITCH TO OTP -->
+      <button id="sayaKirimOTPBtn" onclick="switchToOTPFromPIN_()"
+              class="w-full py-3.5 rounded-2xl bg-gray-50 border border-gray-100
+                    text-sm font-medium text-gray-500
+                    active:scale-95 transition flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        Kirim OTP ke Email
+      </button>
+
+      <!-- LUPA PIN -->
+      <button id="sayaLupaPINBtn" onclick="switchToOTPFromPIN_()"
+              class="text-xs text-gray-400 text-center w-full">
+        Lupa PIN? Reset via OTP
+      </button>
+
+    </div>
+
+  </div><!-- /sayaStepMethod -->
+
   <!-- ===== STEP: OTP ===== -->
-  <div id="sayaStepOTP" class="hidden flex-col" style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div id="sayaStepOTP" class="hidden flex-col h-full">
 
     <!-- HEADER -->
     <div class="bg-white px-5 py-3 border-b border-gray-100 flex items-center gap-3">
@@ -2168,7 +2257,7 @@
   </div>
 
   <!-- ===== STEP: LOGGED IN ===== -->
-  <div id="sayaLoggedInView" class="hidden flex-col h-full">
+  <div id="sayaLoggedInView" class="hidden flex-col flex-1 min-h-0">
 
     <!-- HEADER -->
     <div class="bg-white px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
@@ -2313,6 +2402,24 @@
 
       <!-- MENU LIST -->
       <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mx-0">
+
+        <button onclick="openCreatePINModal()"
+                class="w-full px-4 py-4 flex items-center justify-between active:bg-gray-50 transition">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center">
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <span class="text-sm font-medium text-gray-900">Buat / Ubah PIN</span>
+          </div>
+          <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+
+        <div class="h-px bg-gray-50 mx-4"></div>
 
         <button onclick="openFeedbackModal()"
                 class="w-full px-4 py-4 flex items-center justify-between active:bg-gray-50 transition">
@@ -3068,6 +3175,66 @@
           </svg>
         </button>
       </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== CREATE PIN MODAL ===== -->
+<div id="createPINModal"
+     class="fixed inset-0 z-[800] hidden bg-black/40 flex items-center justify-center px-4">
+  <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
+
+    <div class="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <p class="text-base font-bold text-gray-900">Buat / Ubah PIN</p>
+      <button onclick="closeCreatePINModal()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="px-5 py-5 space-y-4">
+
+      <p class="text-xs text-gray-400 leading-relaxed">
+        PIN digunakan untuk login lebih cepat tanpa OTP. Gunakan 6 digit angka yang mudah diingat.
+      </p>
+
+      <div class="bg-gray-50 rounded-2xl px-4 py-3 space-y-1">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">PIN Baru</label>
+        <input id="createPINInput"
+               type="password"
+               maxlength="6"
+               inputmode="numeric"
+               placeholder="••••••"
+               class="w-full bg-transparent text-gray-900 text-2xl tracking-[0.5em]
+                      border-0 border-b border-gray-200 p-0 pb-1
+                      focus:ring-0 focus:outline-none focus:border-primary
+                      placeholder:text-gray-300 transition"/>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl px-4 py-3 space-y-1">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Konfirmasi PIN</label>
+        <input id="createPINConfirm"
+               type="password"
+               maxlength="6"
+               inputmode="numeric"
+               placeholder="••••••"
+               class="w-full bg-transparent text-gray-900 text-2xl tracking-[0.5em]
+                      border-0 border-b border-gray-200 p-0 pb-1
+                      focus:ring-0 focus:outline-none focus:border-primary
+                      placeholder:text-gray-300 transition"/>
+      </div>
+
+      <div id="createPINError" class="hidden text-sm text-red-500 px-1"></div>
+
+      <button id="createPINSubmitBtn"
+              onclick="submitCreatePIN()"
+              class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-sm
+                     active:scale-95 transition shadow-md shadow-primary/20">
+        Simpan PIN
+      </button>
 
     </div>
   </div>

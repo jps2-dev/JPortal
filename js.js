@@ -283,15 +283,33 @@ function gasPost_(action, body) {
       }
       // ===== SUDAH LOGIN =====
       document.body.classList.remove('saya-open');
-      document.getElementById('sayaStepEmail')?.classList.add('hidden');
-      document.getElementById('sayaLoggedInView')?.classList.remove('hidden');
+      var _se = document.getElementById('sayaStepEmail');
+      if (_se) { _se.classList.add('hidden'); _se.style.display = ''; }
+      var _sm = document.getElementById('sayaStepMethod');
+      if (_sm) { _sm.classList.add('hidden'); _sm.style.display = ''; }
+      var _so = document.getElementById('sayaStepOTP');
+      if (_so) { _so.classList.add('hidden'); _so.style.display = ''; }
+      var loggedInView = document.getElementById('sayaLoggedInView');
+      if (loggedInView) {
+        loggedInView.classList.remove('hidden');
+        loggedInView.style.display = 'flex';
+        loggedInView.style.flexDirection = 'column';
+        loggedInView.style.flex = '1';
+        loggedInView.style.minHeight = '0';
+      }
+
+      // ===== RE-RENDER NAMA & EMAIL =====
+      var nameEl  = document.getElementById('sayaProfileName');
+      var profEmail = document.getElementById('sayaProfileEmail');
+      if (nameEl)    nameEl.innerText  = currentUser.fullName || '';
+      if (profEmail) profEmail.innerText = currentUser.email || '';
 
       // ===== RE-RENDER BLOK LIST =====
-      if (currentUser && currentUser.wargaData && currentUser.wargaData.length) {
+      function renderSayaWargaData_(data) {
         var listEl = document.getElementById('sayaBlokList');
         if (listEl) {
           listEl.innerHTML = '';
-          var blokLabels = currentUser.wargaData
+          var blokLabels = data
             .map(function(item) { return item.blok || ''; })
             .filter(Boolean)
             .join(', ');
@@ -304,17 +322,24 @@ function gasPost_(action, body) {
         var hpEl    = document.getElementById('sayaHpInput');
         var emailEl = document.getElementById('sayaEmailEditInput');
         var badgeEl = document.getElementById('sayaProfileBlokBadge');
-        var nameEl  = document.getElementById('sayaProfileName');
-        var profEmail = document.getElementById('sayaProfileEmail');
-
-        if (namaEl)    namaEl.value  = currentUser.wargaData[0].nama  || '';
-        if (hpEl)      hpEl.value    = currentUser.wargaData[0].noHp  || '';
-        if (emailEl)   emailEl.value = currentUser.wargaData[0].email || currentUser.email || '';
-        if (nameEl)    nameEl.innerText  = currentUser.fullName || '';
-        if (profEmail) profEmail.innerText = currentUser.email || '';
-        if (badgeEl && currentUser.wargaData.length) {
-          badgeEl.innerText = 'Blok ' + currentUser.wargaData.map(function(d){ return d.blok; }).join(', ');
+        if (namaEl)    namaEl.value  = data[0].nama  || '';
+        if (hpEl)      hpEl.value    = data[0].noHp  || '';
+        if (emailEl)   emailEl.value = data[0].email || currentUser.email || '';
+        if (badgeEl && data.length) {
+          badgeEl.innerText = 'Blok ' + data.map(function(d){ return d.blok; }).join(', ');
         }
+      }
+
+      if (currentUser && currentUser.wargaData && currentUser.wargaData.length) {
+        renderSayaWargaData_(currentUser.wargaData);
+      } else if (currentUser && currentUser.email) {
+        // Belum ada wargaData di session → fetch
+        gasGet_('getCurrentUserDataWarga', { email: currentUser.email }).then(function(wRes) {
+          if (!wRes || !wRes.success || !wRes.data || !wRes.data.length) return;
+          currentUser.wargaData = wRes.data;
+          saveSession(currentUser);
+          renderSayaWargaData_(wRes.data);
+        });
       }
 
       // ===== FORCE RESET EDIT MODE (ANTI NYANGKUT) =====
@@ -587,16 +612,30 @@ function gasPost_(action, body) {
 
       blokInput.classList.remove('border-red-500');
 
+      var _snapshotBloks_ = val
+        .split(',')
+        .map(function(b){ return b.trim().toUpperCase(); })
+        .filter(Boolean);
+
+      var _lookupToken_ = val;
+
       gasGet_('getResidentByBlock', { blok: val })
         .then(function(res) {
           setBlokSearchLoading(false);
           if (blokLoading) blokLoading.classList.add('hidden');
+
+          // Abaikan response jika input sudah berubah atau dikosongkan
+          if (blokInput.value.trim() === '' || blokInput.value.trim().toUpperCase() !== _lookupToken_.toUpperCase()) {
+            if (suggestionBox) suggestionBox.classList.add('hidden');
+            return;
+          }
+
           if (!res || !res.found) {
             residentSuggestion = null;
             if (suggestionBox) suggestionBox.classList.add('hidden');
             return;
           }
-          handleResidentResult(res);
+          handleResidentResult(res, _snapshotBloks_);
         })
         .catch(function() {
           setBlokSearchLoading(false);
@@ -714,7 +753,7 @@ function gasPost_(action, body) {
     function maskPhone(phone = '') {
       if (!phone) return '-';
 
-      const clean = phone.replace(/\s/g, '');
+      const clean = String(phone).replace(/\s/g, '');
       if (clean.length <= 6) return clean;
 
       // Tampilkan 4 depan + 3 belakang, tengah di-mask
@@ -725,14 +764,14 @@ function gasPost_(action, body) {
       );
     }
 
-    function handleResidentResult(res) {
+    function handleResidentResult(res, snapshotBloks) {
 
       residentSuggestion = res;
 
       const card = suggestionBox;
       const text = suggestionText;
 
-      const inputBloks = blokInput.value
+      const inputBloks = snapshotBloks || blokInput.value
         .split(',')
         .map(b => b.trim().toUpperCase())
         .filter(Boolean);
@@ -936,7 +975,16 @@ function gasPost_(action, body) {
 
         if(suggestions.length === 1){
 
-          blokInput.value = suggestions[0];
+          // Jika lastPart sudah exact match → jangan replace seluruh value
+          if(lastPart.toUpperCase() === suggestions[0].toUpperCase()){
+            suggestionBox.classList.add('hidden');
+            triggerBlokLookup();
+            return;
+          }
+
+          // Belum exact → replace lastPart saja, bukan seluruh value
+          parts[parts.length - 1] = suggestions[0];
+          blokInput.value = parts.join(', ').trim();
 
           suggestionBox.classList.add('hidden');
 
@@ -1283,12 +1331,12 @@ function gasPost_(action, body) {
           if (bloksArr && bloksArr.length > 1) {
             // Render per blok
             bloksArr.forEach(function(blokName) {
-              // Ambil rate blok ini dari rateByBlokMonth jika ada
+              // Ambil rate blok ini dari rateByBlokMonth[blokName][yr]
               var blokRate = rateNum / bloksArr.length; // fallback equal split
               if (window._rateByBlokMonth_ && window._rateByBlokMonth_[blokName]) {
-                var brm = window._rateByBlokMonth_[blokName];
+                var brmYear = window._rateByBlokMonth_[blokName][yrInt] || window._rateByBlokMonth_[blokName];
                 var key0 = yrInt + '_' + mIdxs[0];
-                if (brm[key0]) blokRate = brm[key0];
+                if (brmYear && brmYear[key0]) blokRate = brmYear[key0];
               }
               var blokSubtotal = blokRate * mIdxs.length;
               breakdownHtml +=
@@ -1360,10 +1408,41 @@ function gasPost_(action, body) {
       if (rateToApply > 0) {
         selectedRate = rateToApply;
         rate = selectedRate;
+
+        // Cek apakah semua blok punya rate sama — baca dari res langsung
+        var bloksArr2 = (res.bloks && res.bloks.length) ? res.bloks : [];
+        var rateByBlokMap2 = res.rateByBlokMonth || null;
+        var yr2 = new Date().getFullYear();
+        var nowM2 = new Date().getMonth();
+
+        var allRates2 = bloksArr2.map(function(b) {
+          if (rateByBlokMap2 && rateByBlokMap2[b] && rateByBlokMap2[b][yr2]) {
+            return rateByBlokMap2[b][yr2][yr2 + '_' + nowM2] || 0;
+          }
+          return 0;
+        }).filter(function(r) { return r > 0; });
+
+        var allSameRate = bloksArr2.length <= 1 ||
+          allRates2.length === 0 ||
+          allRates2.every(function(r) { return r === allRates2[0]; });
+
         document.querySelectorAll('.hunian-card').forEach(function(card) {
           card.classList.remove('active');
-          if (Number(card.dataset.value) === selectedRate) {
-            card.classList.add('active');
+          if (!allSameRate) {
+            // Rate berbeda antar blok — disable card, tampilkan tooltip
+            card.disabled = true;
+            card.style.opacity = '0.4';
+            card.style.cursor = 'not-allowed';
+            card.title = 'Tarif IPL berbeda antar rumah — tidak dapat diubah manual';
+          } else {
+            // Rate sama — enable normal
+            card.disabled = false;
+            card.style.opacity = '';
+            card.style.cursor = '';
+            card.title = '';
+            if (Number(card.dataset.value) === selectedRate) {
+              card.classList.add('active');
+            }
           }
         });
       }
@@ -1395,15 +1474,25 @@ function gasPost_(action, body) {
       var currentYear3 = now3.getFullYear();
       var currentMonth3 = now3.getMonth(); // 0-based (Mar = 2)
 
-      // Untuk tahun berjalan: suggest s.d. bulan ini (inklusif)
-      // Untuk tahun lampau: semua 12 bulan
-      var maxSuggestMonth = (yrInt === currentYear3) ? currentMonth3 : 11;
+      // Untuk tahun berjalan: suggest s.d. bulan depan (inklusif)
+      // agar upcoming bulan berikutnya setelah terakhir bayar ter-suggest
+      var maxSuggestMonth = (yrInt === currentYear3) ? Math.min(currentMonth3 + 1, 11) : 11;
 
       var firstUnpaid = -1;
+      // Loop dari bulan 0 untuk catch tunggakan lama
+      // Loop sampai maxSuggestMonth+1 untuk catch upcoming
       for (var mi3 = 0; mi3 <= maxSuggestMonth; mi3++) {
         if (!paidInYear.includes(mi3)) {
           firstUnpaid = mi3;
           break;
+        }
+      }
+      // Jika semua bulan 0..maxSuggestMonth sudah bayar,
+      // suggest bulan berikutnya (upcoming) jika masih dalam tahun berjalan
+      if (firstUnpaid === -1 && yrInt === currentYear3 && maxSuggestMonth < 11) {
+        var nextMonth = maxSuggestMonth + 1;
+        if (!paidInYear.includes(nextMonth)) {
+          firstUnpaid = nextMonth;
         }
       }
 
@@ -1685,7 +1774,9 @@ function gasPost_(action, body) {
             ok: true,
             paid: wargaPaidMonths,
             rateByMonth: wargaRateByMonth,
-            defaultRate: currentUser._cachedDefaultRate || 0
+            defaultRate: currentUser._cachedDefaultRate || 0,
+            bloks: window._wargaBloks_ || [],
+            rateByBlokMonth: window._rateByBlokMonth_ || null
           });
         } else {
           showDetailPaymentSkeleton_(true);
@@ -2415,10 +2506,10 @@ function gasPost_(action, body) {
       `;
 
       toast.classList.remove('hidden');
-
-      requestAnimationFrame(() => {
-        toastInner.classList.remove('opacity-0', 'translate-y-3');
-      });
+      toast.style.opacity = '1';
+      toastInner.classList.remove('opacity-0', 'translate-y-3');
+      toastInner.style.opacity = '1';
+      toastInner.style.transform = 'translateY(0)';
 
       if (activeToastTimer) {
         clearTimeout(activeToastTimer);
@@ -2426,11 +2517,16 @@ function gasPost_(action, body) {
 
       activeToastTimer = setTimeout(() => {
 
+        toastInner.style.opacity = '0';
+        toastInner.style.transform = 'translateY(12px)';
         toastInner.classList.add('opacity-0', 'translate-y-3');
 
         setTimeout(() => {
           toast.classList.add('hidden');
+          toast.style.opacity = '';
           toastInner.innerHTML = '';
+          toastInner.style.opacity = '';
+          toastInner.style.transform = '';
         }, 250);
 
       }, 2200);
@@ -2544,6 +2640,14 @@ function gasPost_(action, body) {
         });
 
       });
+
+      // ===== FILTER BULAN =====
+      var monthFilterEl = document.getElementById('monthFilterSelect');
+      if (monthFilterEl) {
+        monthFilterEl.addEventListener('change', function() {
+          applyFilters();
+        });
+      }
 
       // ===== FILTER CATEGORY =====
       document.querySelectorAll('.filter-category').forEach(btn => {
@@ -3021,75 +3125,267 @@ function gasPost_(action, body) {
     }
 
     btn.disabled = true;
+    btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none"/></svg>Memeriksa...</span>';
 
-    // STAGE 1 — Checking
-    btn.innerHTML = `
-      <span class="flex items-center justify-center gap-2">
-        <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"
-            stroke="white" stroke-width="3"
-            fill="none" opacity="0.3"/>
-          <path d="M12 2a10 10 0 0 1 10 10"
-            stroke="white" stroke-width="3"
-            fill="none"/>
-        </svg>
-        Memeriksa email...
-      </span>
-    `;
-
-    gasPost_('requestLoginOTP', { email: email })
-      .then(function(res) {
-        if (!res || !res.success) {
+    gasGet_('checkEmail', { email: email })
+      .then(function(pinRes) {
+        if (!pinRes || !pinRes.success) {
           btn.disabled = false;
-          btn.innerHTML = 'Kirim Kode OTP';
+          btn.innerHTML = 'Masuk';
           var errSpan = errorEl.querySelector('span');
-          if (errSpan) errSpan.innerText = res && res.message ? res.message : 'Email tidak ditemukan di sistem';
+          if (errSpan) errSpan.innerText = pinRes && pinRes.message ? pinRes.message : 'Email tidak ditemukan di sistem';
           errorEl.classList.remove('hidden');
           var emailCard = document.getElementById('sayaEmailInput')?.closest('.bg-white');
           if (emailCard) shakeField(emailCard);
           if (navigator.vibrate) navigator.vibrate(40);
           return;
         }
-        btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>Email ditemukan</span>';
-        setTimeout(function() {
-          btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none"/></svg>Mengirim OTP...</span>';
-          setTimeout(function() {
-            var emailStep = document.getElementById('sayaStepEmail');
-            var otpStep   = document.getElementById('sayaStepOTP');
-            emailStep.style.opacity = '0';
-            emailStep.style.transform = 'translateY(6px)';
-            emailStep.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
-            setTimeout(function() {
-              emailStep.classList.add('hidden');
-              emailStep.style.opacity = '';
-              emailStep.style.transform = '';
-              otpStep.classList.remove('hidden');
-              otpStep.style.display = 'flex';
-              otpStep.style.flexDirection = 'column';
-              otpStep.style.height = '100%';
-              otpStep.style.overflowY = 'auto';
-              otpStep.classList.add('saya-step');
-              setTimeout(function() { otpStep.classList.remove('saya-step'); }, 300);
-            }, 180);
-            var sentTo = document.getElementById('otpSentTo');
-            if (sentTo) sentTo.innerHTML = 'Kode dikirim ke <span class="text-primary font-semibold">' + email + '</span>';
-            initOTPBoxes();
-            startOTPCountdown();
-            btn.disabled = false;
-            btn.innerHTML = 'Kirim Kode OTP';
-          }, 800);
-        }, 600);
+        btn.disabled = false;
+        btn.innerHTML = 'Masuk';
+        if (pinRes.hasPIN) {
+          showLoginMethodStep_(email);
+        } else {
+          proceedSendOTP_(email);
+        }
       })
       .catch(function() {
         btn.disabled = false;
-        btn.innerHTML = 'Kirim Kode OTP';
+        btn.innerHTML = 'Masuk';
         var errSpan = errorEl.querySelector('span');
-        if (errSpan) errSpan.innerText = 'Gagal mengirim OTP';
+        if (errSpan) errSpan.innerText = 'Gagal memeriksa akun';
         errorEl.classList.remove('hidden');
         var emailCard = document.getElementById('sayaEmailInput')?.closest('.bg-white');
         if (emailCard) shakeField(emailCard);
         if (navigator.vibrate) navigator.vibrate(40);
       });
+  }
+
+  function proceedSendOTP_(email) {
+    var btn = document.getElementById('requestOTPBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none"/></svg>Mengirim OTP...</span>';
+
+    gasPost_('requestLoginOTP', { email: email })
+      .then(function(res) {
+        btn.disabled = false;
+        btn.innerHTML = 'Kirim Kode OTP';
+        if (!res || !res.success) {
+          var errorEl = document.getElementById('sayaEmailError');
+          if (errorEl) {
+            var errSpan = errorEl.querySelector('span');
+            if (errSpan) errSpan.innerText = res && res.message ? res.message : 'Gagal mengirim OTP';
+            errorEl.classList.remove('hidden');
+          }
+          return;
+        }
+        var emailStep = document.getElementById('sayaStepEmail');
+        var otpStep   = document.getElementById('sayaStepOTP');
+        emailStep.style.opacity = '0';
+        emailStep.style.transform = 'translateY(6px)';
+        emailStep.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+        setTimeout(function() {
+          emailStep.classList.add('hidden');
+          emailStep.style.opacity = '';
+          emailStep.style.transform = '';
+          otpStep.classList.remove('hidden');
+          otpStep.style.display = 'flex';
+          otpStep.style.flexDirection = 'column';
+          otpStep.style.height = '100%';
+          otpStep.style.overflowY = 'auto';
+          otpStep.classList.add('saya-step');
+          setTimeout(function() { otpStep.classList.remove('saya-step'); }, 300);
+        }, 180);
+        var sentTo = document.getElementById('otpSentTo');
+        if (sentTo) sentTo.innerHTML = 'Kode dikirim ke <span class="text-primary font-semibold">' + email + '</span>';
+        initOTPBoxes();
+        startOTPCountdown();
+      })
+      .catch(function() {
+        btn.disabled = false;
+        btn.innerHTML = 'Kirim Kode OTP';
+        var errorEl = document.getElementById('sayaEmailError');
+        if (errorEl) {
+          var errSpan = errorEl.querySelector('span');
+          if (errSpan) errSpan.innerText = 'Gagal mengirim OTP, coba lagi';
+          errorEl.classList.remove('hidden');
+        }
+      });
+  }
+
+  function showLoginMethodStep_(email) {
+    var emailStep = document.getElementById('sayaStepEmail');
+    var methodStep = document.getElementById('sayaStepMethod');
+    if (!methodStep) return;
+    emailStep.classList.add('hidden');
+    methodStep.classList.remove('hidden');
+    methodStep.style.display = 'flex';
+    methodStep.style.flexDirection = 'column';
+    methodStep.style.height = '100%';
+    var methodEmail = document.getElementById('sayaMethodEmail');
+    if (methodEmail) methodEmail.innerText = email;
+  }
+
+  async function hashPIN_(pin) {
+    var msgBuffer = new TextEncoder().encode(pin);
+    var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    var hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  function loginWithPINSaya() {
+    var email = document.getElementById('sayaEmailInput')
+      ? document.getElementById('sayaEmailInput').value.trim() : '';
+    var pinVal = document.getElementById('sayaPINLoginInput')
+      ? document.getElementById('sayaPINLoginInput').value.trim() : '';
+    var errorEl = document.getElementById('sayaPINLoginError');
+    if (!pinVal || pinVal.length !== 6) {
+      if (errorEl) { errorEl.innerText = 'PIN harus 6 digit'; errorEl.classList.remove('hidden'); }
+      return;
+    }
+    var btn = document.getElementById('sayaPINLoginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:8px"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none"/></svg>Memverifikasi...</span>';
+    hashPIN_(pinVal).then(function(pinHash) {
+      return gasPost_('verifyPIN', { email: email, pinHash: pinHash });
+    }).then(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = 'Masuk dengan PIN';
+      if (!res || !res.success) {
+        if (errorEl) { errorEl.innerText = res && res.message ? res.message : 'PIN salah'; errorEl.classList.remove('hidden'); }
+        if (navigator.vibrate) navigator.vibrate(40);
+        return;
+      }
+      // Login berhasil — same flow as verifyOTPSaya
+      currentUser = res.user;
+      saveSession(res.user);
+      updateHeaderAuthUI();
+      var otpStepEl = document.getElementById('sayaStepMethod');
+      if (otpStepEl) { otpStepEl.classList.add('hidden'); otpStepEl.style.display = ''; otpStepEl.style.height = ''; }
+      var emailStepEl = document.getElementById('sayaStepEmail');
+      if (emailStepEl) { emailStepEl.classList.add('hidden'); emailStepEl.style.display = ''; emailStepEl.style.height = ''; }
+      document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
+      document.getElementById('sayaProfileEmail').innerText = res.user.email;
+      var loggedInView = document.getElementById('sayaLoggedInView');
+      if (loggedInView) {
+        loggedInView.classList.remove('hidden');
+        loggedInView.style.display = 'flex';
+        loggedInView.style.flexDirection = 'column';
+        loggedInView.style.flex = '1';
+        loggedInView.style.minHeight = '0';
+      }
+      document.body.classList.remove('saya-open');
+      switchPage('homePage');
+      setActiveNavById('navHome');
+      loadHomeData();
+      gasGet_('getCurrentUserDataWarga', { email: res.user.email }).then(function(wRes) {
+        if (!wRes || !wRes.success) return;
+        currentUser.wargaData = wRes.data || [];
+        saveSession(currentUser);
+        var listEl  = document.getElementById('sayaBlokList');
+        var namaEl  = document.getElementById('sayaNamaInput');
+        var hpEl    = document.getElementById('sayaHpInput');
+        var emailEl = document.getElementById('sayaEmailEditInput');
+        if (listEl) {
+          listEl.innerHTML = '';
+          var blokStr = wRes.data.map(function(d) { return d.blok || ''; }).filter(Boolean).join(', ');
+          var div = document.createElement('div');
+          div.innerText = blokStr || '—';
+          listEl.appendChild(div);
+        }
+        if (namaEl)  namaEl.value  = wRes.data[0].nama  || '';
+        if (hpEl)    hpEl.value    = wRes.data[0].noHp  || '';
+        if (emailEl) emailEl.value = wRes.data[0].email || '';
+        setTimeout(function() { showToast('Anda telah login', 'success'); }, 300);
+      });
+    }).catch(function() {
+      btn.disabled = false;
+      btn.innerHTML = 'Masuk dengan PIN';
+      if (errorEl) { errorEl.innerText = 'Verifikasi gagal'; errorEl.classList.remove('hidden'); }
+    });
+  }
+
+  function switchToOTPFromPIN_() {
+    var methodStep = document.getElementById('sayaStepMethod');
+    var emailStep = document.getElementById('sayaStepEmail');
+    var email = document.getElementById('sayaEmailInput')
+      ? document.getElementById('sayaEmailInput').value.trim() : '';
+
+    // Kirim OTP dulu ke email sebelum switch UI
+    var otpBtn = document.getElementById('sayaKirimOTPBtn');
+    if (otpBtn) {
+      otpBtn.disabled = true;
+      otpBtn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" fill="none"/></svg>Mengirim...</span>';
+    }
+
+    gasPost_('requestLoginOTP', { email: email })
+      .then(function() {
+        if (otpBtn) { otpBtn.disabled = false; otpBtn.innerHTML = 'Kirim OTP ke Email'; }
+        if (methodStep) { methodStep.classList.add('hidden'); methodStep.style.display = ''; methodStep.style.height = ''; }
+        if (emailStep) { emailStep.classList.add('hidden'); emailStep.style.display = ''; emailStep.style.height = ''; }
+        var otpStep = document.getElementById('sayaStepOTP');
+        if (otpStep) {
+          otpStep.classList.remove('hidden');
+          otpStep.style.display = 'flex';
+          otpStep.style.flexDirection = 'column';
+          otpStep.style.height = '100%';
+          otpStep.style.overflowY = 'auto';
+        }
+        var sentTo = document.getElementById('otpSentTo');
+        if (sentTo) sentTo.innerHTML = 'Kode dikirim ke <span class="text-primary font-semibold">' + email + '</span>';
+        initOTPBoxes();
+        startOTPCountdown();
+      })
+      .catch(function() {
+        if (otpBtn) { otpBtn.disabled = false; otpBtn.innerHTML = 'Kirim OTP ke Email'; }
+        showToast('Gagal mengirim OTP, coba lagi', 'error');
+      });
+  }
+
+  function openCreatePINModal() {
+    var modal = document.getElementById('createPINModal');
+    if (!modal) return;
+    document.getElementById('createPINInput').value = '';
+    document.getElementById('createPINConfirm').value = '';
+    document.getElementById('createPINError').classList.add('hidden');
+    modal.classList.remove('hidden');
+  }
+
+  function closeCreatePINModal() {
+    var modal = document.getElementById('createPINModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function submitCreatePIN() {
+    var pin1 = document.getElementById('createPINInput').value.trim();
+    var pin2 = document.getElementById('createPINConfirm').value.trim();
+    var errorEl = document.getElementById('createPINError');
+    errorEl.classList.add('hidden');
+    if (pin1.length !== 6 || !/^\d{6}$/.test(pin1)) {
+      errorEl.innerText = 'PIN harus 6 digit angka'; errorEl.classList.remove('hidden'); return;
+    }
+    if (pin1 !== pin2) {
+      errorEl.innerText = 'Konfirmasi PIN tidak cocok'; errorEl.classList.remove('hidden'); return;
+    }
+    var btn = document.getElementById('createPINSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" stroke-width="3"/></svg>Menyimpan...</span>';
+    var email = currentUser ? currentUser.email : '';
+    hashPIN_(pin1).then(function(pinHash) {
+      return gasPost_('savePIN', { email: email, pinHash: pinHash });
+    }).then(function(res) {
+      btn.disabled = false;
+      btn.innerText = 'Simpan PIN';
+      if (!res || !res.success) {
+        errorEl.innerText = res && res.message ? res.message : 'Gagal menyimpan PIN';
+        errorEl.classList.remove('hidden'); return;
+      }
+      closeCreatePINModal();
+      showToast('PIN berhasil disimpan 🔐', 'success');
+    }).catch(function() {
+      btn.disabled = false;
+      btn.innerText = 'Simpan PIN';
+      errorEl.innerText = 'Gagal menyimpan PIN'; errorEl.classList.remove('hidden');
+    });
   }
 
   function verifyOTPSaya() {
@@ -3130,6 +3426,23 @@ function gasPost_(action, body) {
         currentUser = res.user;
         saveSession(res.user);
         updateHeaderAuthUI();
+
+        var otpStepEl = document.getElementById('sayaStepOTP');
+        otpStepEl.classList.add('hidden');
+        otpStepEl.style.display = '';
+        otpStepEl.style.flexDirection = '';
+        otpStepEl.style.height = '';
+        otpStepEl.style.overflowY = '';
+        var smEl = document.getElementById('sayaStepMethod');
+        if (smEl) { smEl.classList.add('hidden'); smEl.style.display = ''; smEl.style.height = ''; }
+        var seEl = document.getElementById('sayaStepEmail');
+        if (seEl) { seEl.classList.add('hidden'); seEl.style.display = ''; seEl.style.height = ''; }
+        document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
+        document.getElementById('sayaProfileEmail').innerText = res.user.email;
+        document.getElementById('sayaLoggedInView').classList.remove('hidden');
+        document.body.classList.remove('saya-open');
+        switchPage('homePage');
+        setActiveNavById('navHome');
         loadHomeData();
         gasGet_('getCurrentUserDataWarga', { email: res.user.email })
           .then(function(dataRes) {
@@ -3137,16 +3450,7 @@ function gasPost_(action, body) {
               currentUser.wargaData = dataRes.data || [];
             }
           });
-        var otpStepEl = document.getElementById('sayaStepOTP');
-        otpStepEl.classList.add('hidden');
-        otpStepEl.style.display = '';
-        otpStepEl.style.flexDirection = '';
-        otpStepEl.style.height = '';
-        otpStepEl.style.overflowY = '';
-        document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
-        document.getElementById('sayaProfileEmail').innerText = res.user.email;
-        document.getElementById('sayaLoggedInView').classList.remove('hidden');
-        document.body.classList.remove('saya-open');
+
         var badgeEl = document.getElementById('sayaProfileBlokBadge');
         if (badgeEl && res.user.blocks && res.user.blocks.length) {
           badgeEl.innerText = 'Blok ' + res.user.blocks.join(', ');
@@ -3168,7 +3472,7 @@ function gasPost_(action, body) {
             if (namaEl)  namaEl.value  = wRes.data[0].nama  || '';
             if (hpEl)    hpEl.value    = wRes.data[0].noHp  || '';
             if (emailEl) emailEl.value = wRes.data[0].email || '';
-            showToast('Anda telah login', 'success');
+            setTimeout(function() { showToast('Anda telah login', 'success'); }, 300);
           });
       })
       .catch(function() {
@@ -3481,12 +3785,15 @@ function gasPost_(action, body) {
       updateHeaderAuthUI();
 
       // 3. Reset logout modal
+      var logoutBtnReset = document.querySelector('#logoutConfirmCard button:last-child');
+      if (logoutBtnReset) { logoutBtnReset.disabled = false; logoutBtnReset.innerHTML = 'Ya, Keluar'; }
       closeLogoutConfirm();
       document.body.classList.remove('saya-open');
 
       // 4. Reset step saya
       document.getElementById('sayaLoggedInView').classList.add('hidden');
       document.getElementById('sayaStepEmail').classList.remove('hidden');
+      document.getElementById('sayaStepMethod').classList.add('hidden');
       document.getElementById('sayaStepOTP').classList.add('hidden');
       document.getElementById('sayaEmailInput').value = '';
       document.getElementById('sayaOTPInput').value = '';
@@ -3745,6 +4052,18 @@ function gasPost_(action, body) {
           }
         }
 
+        var isConfirmed = (item.status || '').toLowerCase() === 'confirmed';
+        var verifiedBySection = '';
+        if (isConfirmed && !isAdmin && item.verifiedBy) {
+          // tidak tampil di sisi warga
+        } else if (isConfirmed && isAdmin && item.verifiedBy) {
+          verifiedBySection =
+            '<div class="mt-1 flex items-center gap-1">' +
+              '<svg class="w-3 h-3 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+              '<span class="text-[10px] text-gray-400">Confirmed by <span class="font-medium text-gray-500">' + (item.verifiedBy ? item.verifiedBy.split('@')[0] : '') + '</span></span>' +
+            '</div>';
+        }
+
         var uidSection = !isPending
           ? '<div id="uid-container-' + item.rowNumber + '" class="mt-1">' +
             renderUidTableCompact(item) +
@@ -3806,6 +4125,7 @@ function gasPost_(action, body) {
 
           // UID section
           (uidSection ? '<div class="mt-2 pt-2 border-t border-gray-50">' + uidSection + '</div>' : '') +
+          verifiedBySection +
 
           // ACTION BUTTONS
           '<div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-gray-50">' +
@@ -4088,6 +4408,11 @@ function gasPost_(action, body) {
         : dashboardConfirmedCache;
     var filtered = [...source];
 
+    // Sort terbaru di atas
+    filtered.sort(function(a, b) {
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+
     // ===== ROLE FILTER =====
     if (currentUser && currentUser.role === 'warga') {
       const userBlocks = Array.isArray(currentUser.blocks)
@@ -4118,6 +4443,20 @@ function gasPost_(action, body) {
         return searchTarget.includes(keyword);
       });
     }
+    // ===== FILTER BULAN =====
+    var monthFilterEl2 = document.getElementById('monthFilterSelect');
+    var selectedMonth  = monthFilterEl2 ? monthFilterEl2.value : '';
+    if (selectedMonth) {
+      filtered = filtered.filter(function(item) {
+        var bulanStr = String(item.bulan || '').trim();
+        // bulan bisa "Apr", "Jan, Feb, Mar" — cek apakah selectedMonth ada di dalamnya
+        var parts = bulanStr.split(',').map(function(b) { return b.trim(); });
+        return parts.some(function(p) {
+          return p.toLowerCase() === selectedMonth.toLowerCase();
+        });
+      });
+    }
+
     // ===== TIME FILTER =====
     if (activeTimeFilter && activeTimeFilter !== 'all') {
       const now = new Date();
@@ -5576,7 +5915,9 @@ function adminPilihSendiri() {
           ok: true,
           paid: wargaPaidMonths,
           rateByMonth: wargaRateByMonth,
-          defaultRate: cachedRate
+          defaultRate: cachedRate,
+          bloks: window._wargaBloks_ || [],
+          rateByBlokMonth: window._rateByBlokMonth_ || null
         });
         showDetailPaymentSkeleton_(false);
       }, 300);
