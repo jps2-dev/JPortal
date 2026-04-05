@@ -335,6 +335,7 @@ function gasPost_(action, body) {
       } else if (currentUser && currentUser.email) {
         // Belum ada wargaData di session → fetch
         gasGet_('getCurrentUserDataWarga', { email: currentUser.email }).then(function(wRes) {
+          if (!currentUser) return;
           if (!wRes || !wRes.success || !wRes.data || !wRes.data.length) return;
           currentUser.wargaData = wRes.data;
           saveSession(currentUser);
@@ -2848,6 +2849,8 @@ function gasPost_(action, body) {
           if (errorEl) errorEl.classList.remove('hidden');
           return;
         }
+        if (response._debug) console.warn('[Dashboard] GAS debug:', response._debug);
+        if (response.error) console.error('[Dashboard] GAS error:', response.error);
         dashboardCache = response;
         dashboardPendingCache   = response.pending   || [];
         dashboardConfirmedCache = response.confirmed || [];
@@ -3161,6 +3164,7 @@ function gasPost_(action, body) {
   }
 
   function proceedSendOTP_(email) {
+    _sayaOTPMode_ = 'first_otp';
     var btn = document.getElementById('requestOTPBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="flex items-center justify-center gap-2"><svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" fill="none" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="3" fill="none"/></svg>Mengirim OTP...</span>';
@@ -3278,6 +3282,7 @@ function gasPost_(action, body) {
       setActiveNavById('navHome');
       loadHomeData();
       gasGet_('getCurrentUserDataWarga', { email: res.user.email }).then(function(wRes) {
+        if (!currentUser) return;
         if (!wRes || !wRes.success) return;
         currentUser.wargaData = wRes.data || [];
         saveSession(currentUser);
@@ -3304,7 +3309,11 @@ function gasPost_(action, body) {
     });
   }
 
+  // 'login' | 'reset_pin' | 'first_otp'
+  var _sayaOTPMode_ = 'login';
+
   function switchToOTPFromPIN_() {
+    _sayaOTPMode_ = 'login';
     var methodStep = document.getElementById('sayaStepMethod');
     var emailStep = document.getElementById('sayaStepEmail');
     var email = document.getElementById('sayaEmailInput')
@@ -3426,54 +3435,7 @@ function gasPost_(action, body) {
         currentUser = res.user;
         saveSession(res.user);
         updateHeaderAuthUI();
-
-        var otpStepEl = document.getElementById('sayaStepOTP');
-        otpStepEl.classList.add('hidden');
-        otpStepEl.style.display = '';
-        otpStepEl.style.flexDirection = '';
-        otpStepEl.style.height = '';
-        otpStepEl.style.overflowY = '';
-        var smEl = document.getElementById('sayaStepMethod');
-        if (smEl) { smEl.classList.add('hidden'); smEl.style.display = ''; smEl.style.height = ''; }
-        var seEl = document.getElementById('sayaStepEmail');
-        if (seEl) { seEl.classList.add('hidden'); seEl.style.display = ''; seEl.style.height = ''; }
-        document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
-        document.getElementById('sayaProfileEmail').innerText = res.user.email;
-        document.getElementById('sayaLoggedInView').classList.remove('hidden');
-        document.body.classList.remove('saya-open');
-        switchPage('homePage');
-        setActiveNavById('navHome');
-        loadHomeData();
-        gasGet_('getCurrentUserDataWarga', { email: res.user.email })
-          .then(function(dataRes) {
-            if (dataRes && dataRes.success) {
-              currentUser.wargaData = dataRes.data || [];
-            }
-          });
-
-        var badgeEl = document.getElementById('sayaProfileBlokBadge');
-        if (badgeEl && res.user.blocks && res.user.blocks.length) {
-          badgeEl.innerText = 'Blok ' + res.user.blocks.join(', ');
-        }
-        gasGet_('getCurrentUserDataWarga', { email: res.user.email })
-          .then(function(wRes) {
-            if (!wRes || !wRes.success) return;
-            var listEl  = document.getElementById('sayaBlokList');
-            var namaEl  = document.getElementById('sayaNamaInput');
-            var hpEl    = document.getElementById('sayaHpInput');
-            var emailEl = document.getElementById('sayaEmailEditInput');
-            if (listEl) {
-              listEl.innerHTML = '';
-              var blokStr = wRes.data.map(function(d) { return d.blok || ''; }).filter(Boolean).join(', ');
-              var div = document.createElement('div');
-              div.innerText = blokStr || '—';
-              listEl.appendChild(div);
-            }
-            if (namaEl)  namaEl.value  = wRes.data[0].nama  || '';
-            if (hpEl)    hpEl.value    = wRes.data[0].noHp  || '';
-            if (emailEl) emailEl.value = wRes.data[0].email || '';
-            setTimeout(function() { showToast('Anda telah login', 'success'); }, 300);
-          });
+        _afterOTPVerified_(res.user);
       })
       .catch(function() {
         btn.disabled = false;
@@ -3481,6 +3443,178 @@ function gasPost_(action, body) {
         errorEl.innerText = 'Verifikasi gagal';
         errorEl.classList.remove('hidden');
       });
+  }
+
+  /* ===== OTP MODE: SWITCH TO RESET PIN ===== */
+  function switchToResetPINViaOTP_() {
+    _sayaOTPMode_ = 'reset_pin';
+    var methodStep = document.getElementById('sayaStepMethod');
+    var emailStep  = document.getElementById('sayaStepEmail');
+    var email = document.getElementById('sayaEmailInput')
+      ? document.getElementById('sayaEmailInput').value.trim() : '';
+    var btn = document.getElementById('sayaLupaPINBtn');
+    if (btn) { btn.disabled = true; btn.innerText = 'Mengirim OTP...'; }
+    gasPost_('requestLoginOTP', { email: email })
+      .then(function() {
+        if (btn) { btn.disabled = false; btn.innerText = 'Lupa PIN? Reset via OTP'; }
+        if (methodStep) { methodStep.classList.add('hidden'); methodStep.style.display = ''; methodStep.style.height = ''; }
+        if (emailStep) { emailStep.classList.add('hidden'); emailStep.style.display = ''; emailStep.style.height = ''; }
+        var otpStep = document.getElementById('sayaStepOTP');
+        if (otpStep) { otpStep.classList.remove('hidden'); otpStep.style.display = 'flex'; otpStep.style.flexDirection = 'column'; otpStep.style.height = '100%'; otpStep.style.overflowY = 'auto'; }
+        var sentTo = document.getElementById('otpSentTo');
+        if (sentTo) sentTo.innerHTML = 'Kode dikirim ke <span class="text-primary font-semibold">' + email + '</span>';
+        initOTPBoxes();
+        startOTPCountdown();
+      })
+      .catch(function() {
+        if (btn) { btn.disabled = false; btn.innerText = 'Lupa PIN? Reset via OTP'; }
+        showToast('Gagal mengirim OTP, coba lagi', 'error');
+      });
+  }
+
+  /* ===== AFTER OTP VERIFIED — BRANCHING ===== */
+  function _afterOTPVerified_(user) {
+    if (_sayaOTPMode_ === 'reset_pin') {
+      showResetPINStep_();
+      return;
+    }
+    if (_sayaOTPMode_ === 'first_otp') {
+      showPINOfferModal_();
+      return;
+    }
+    _doLoginFromOTP_(user);
+  }
+
+  /* ===== SHARED LOGIN FLOW (after OTP / after PIN saved) ===== */
+  function _doLoginFromOTP_(user) {
+    ['sayaStepOTP','sayaStepMethod','sayaStepEmail','sayaStepResetPIN'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.classList.add('hidden'); el.style.display = ''; el.style.height = ''; el.style.flexDirection = ''; el.style.overflowY = ''; }
+    });
+    var profName = document.getElementById('sayaProfileName');
+    var profEmail = document.getElementById('sayaProfileEmail');
+    if (profName) profName.innerText = user.fullName || 'User';
+    if (profEmail) profEmail.innerText = user.email;
+    document.getElementById('sayaLoggedInView').classList.remove('hidden');
+    document.body.classList.remove('saya-open');
+    switchPage('homePage');
+    setActiveNavById('navHome');
+    loadHomeData();
+    var badgeEl = document.getElementById('sayaProfileBlokBadge');
+    if (badgeEl && user.blocks && user.blocks.length) badgeEl.innerText = 'Blok ' + user.blocks.join(', ');
+    gasGet_('getCurrentUserDataWarga', { email: user.email })
+      .then(function(wRes) {
+        if (!currentUser) return;
+        if (!wRes || !wRes.success) return;
+        currentUser.wargaData = wRes.data || [];
+        saveSession(currentUser);
+        var listEl  = document.getElementById('sayaBlokList');
+        var namaEl  = document.getElementById('sayaNamaInput');
+        var hpEl    = document.getElementById('sayaHpInput');
+        var emailEl = document.getElementById('sayaEmailEditInput');
+        if (listEl) {
+          listEl.innerHTML = '';
+          var blokStr = wRes.data.map(function(d) { return d.blok || ''; }).filter(Boolean).join(', ');
+          var div = document.createElement('div');
+          div.innerText = blokStr || '—';
+          listEl.appendChild(div);
+        }
+        if (namaEl && wRes.data[0])  namaEl.value  = wRes.data[0].nama  || '';
+        if (hpEl   && wRes.data[0])  hpEl.value    = wRes.data[0].noHp  || '';
+        if (emailEl && wRes.data[0]) emailEl.value = wRes.data[0].email || '';
+        setTimeout(function() { showToast('Anda telah login', 'success'); }, 300);
+      });
+  }
+
+  /* ===== RESET PIN STEP (wajib, dari "Lupa PIN") ===== */
+  function showResetPINStep_() {
+    var otpStep = document.getElementById('sayaStepOTP');
+    if (otpStep) { otpStep.classList.add('hidden'); otpStep.style.display = ''; otpStep.style.height = ''; otpStep.style.overflowY = ''; }
+    var step = document.getElementById('sayaStepResetPIN');
+    if (step) { step.classList.remove('hidden'); step.style.display = 'flex'; step.style.height = '100%'; }
+    var p1 = document.getElementById('resetPINInput');
+    var p2 = document.getElementById('resetPINConfirm');
+    var err = document.getElementById('resetPINError');
+    if (p1) p1.value = '';
+    if (p2) p2.value = '';
+    if (err) { err.innerText = ''; err.classList.add('hidden'); }
+  }
+
+  function submitResetPIN_() {
+    var pin1 = (document.getElementById('resetPINInput') || {}).value || '';
+    var pin2 = (document.getElementById('resetPINConfirm') || {}).value || '';
+    var errEl = document.getElementById('resetPINError');
+    errEl.classList.add('hidden');
+    if (!/^\d{6}$/.test(pin1.trim())) { errEl.innerText = 'PIN harus 6 digit angka'; errEl.classList.remove('hidden'); return; }
+    if (pin1 !== pin2) { errEl.innerText = 'Konfirmasi PIN tidak cocok'; errEl.classList.remove('hidden'); return; }
+    var btn = document.getElementById('resetPINSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" stroke-width="3"/></svg>Menyimpan...</span>';
+    var email = currentUser ? currentUser.email : '';
+    hashPIN_(pin1.trim()).then(function(pinHash) {
+      return gasPost_('savePIN', { email: email, pinHash: pinHash });
+    }).then(function(res) {
+      btn.disabled = false; btn.innerText = 'Simpan PIN Baru';
+      if (!res || !res.success) { errEl.innerText = res && res.message ? res.message : 'Gagal menyimpan PIN'; errEl.classList.remove('hidden'); return; }
+      var step = document.getElementById('sayaStepResetPIN');
+      if (step) { step.classList.add('hidden'); step.style.display = ''; step.style.height = ''; }
+      showToast('PIN baru berhasil dibuat! 🔐', 'success');
+      _doLoginFromOTP_(currentUser);
+    }).catch(function() {
+      btn.disabled = false; btn.innerText = 'Simpan PIN Baru';
+      errEl.innerText = 'Gagal menyimpan PIN'; errEl.classList.remove('hidden');
+    });
+  }
+
+  function skipResetPIN_() {
+    var step = document.getElementById('sayaStepResetPIN');
+    if (step) { step.classList.add('hidden'); step.style.display = ''; step.style.height = ''; }
+    _doLoginFromOTP_(currentUser);
+  }
+
+  /* ===== PIN OFFER MODAL (opsional, untuk user tanpa PIN) ===== */
+  function showPINOfferModal_() {
+    var modal = document.getElementById('sayaPINOfferModal');
+    if (!modal) { _doLoginFromOTP_(currentUser); return; }
+    var p1 = document.getElementById('offerPINInput');
+    var p2 = document.getElementById('offerPINConfirm');
+    var err = document.getElementById('offerPINError');
+    if (p1) p1.value = '';
+    if (p2) p2.value = '';
+    if (err) { err.innerText = ''; err.classList.add('hidden'); }
+    modal.classList.remove('hidden');
+  }
+
+  function submitPINOffer_() {
+    var pin1 = (document.getElementById('offerPINInput') || {}).value || '';
+    var pin2 = (document.getElementById('offerPINConfirm') || {}).value || '';
+    var errEl = document.getElementById('offerPINError');
+    errEl.classList.add('hidden');
+    if (!/^\d{6}$/.test(pin1.trim())) { errEl.innerText = 'PIN harus 6 digit angka'; errEl.classList.remove('hidden'); return; }
+    if (pin1 !== pin2) { errEl.innerText = 'Konfirmasi PIN tidak cocok'; errEl.classList.remove('hidden'); return; }
+    var btn = document.getElementById('offerPINSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><svg style="width:16px;height:16px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="#fff" stroke-width="3"/></svg>Menyimpan...</span>';
+    var email = currentUser ? currentUser.email : '';
+    hashPIN_(pin1.trim()).then(function(pinHash) {
+      return gasPost_('savePIN', { email: email, pinHash: pinHash });
+    }).then(function(res) {
+      btn.disabled = false; btn.innerText = 'Buat PIN Sekarang';
+      if (!res || !res.success) { errEl.innerText = res && res.message ? res.message : 'Gagal menyimpan PIN'; errEl.classList.remove('hidden'); return; }
+      var modal = document.getElementById('sayaPINOfferModal');
+      if (modal) modal.classList.add('hidden');
+      showToast('PIN berhasil dibuat! 🔐 Login lebih cepat mulai sekarang', 'success');
+      _doLoginFromOTP_(currentUser);
+    }).catch(function() {
+      btn.disabled = false; btn.innerText = 'Buat PIN Sekarang';
+      errEl.innerText = 'Gagal menyimpan PIN'; errEl.classList.remove('hidden');
+    });
+  }
+
+  function skipPINOffer_() {
+    var modal = document.getElementById('sayaPINOfferModal');
+    if (modal) modal.classList.add('hidden');
+    _doLoginFromOTP_(currentUser);
   }
 
   /* ===== INIT UI EVENTS ===== */
@@ -3793,10 +3927,23 @@ function gasPost_(action, body) {
       // 4. Reset step saya
       document.getElementById('sayaLoggedInView').classList.add('hidden');
       document.getElementById('sayaStepEmail').classList.remove('hidden');
-      document.getElementById('sayaStepMethod').classList.add('hidden');
+      var _smReset = document.getElementById('sayaStepMethod');
+      if (_smReset) { _smReset.classList.add('hidden'); _smReset.style.display = ''; _smReset.style.height = ''; }
       document.getElementById('sayaStepOTP').classList.add('hidden');
       document.getElementById('sayaEmailInput').value = '';
       document.getElementById('sayaOTPInput').value = '';
+      var pinInput = document.getElementById('sayaPINLoginInput');
+      if (pinInput) pinInput.value = '';
+      var pinError = document.getElementById('sayaPINLoginError');
+      if (pinError) { pinError.innerText = ''; pinError.classList.add('hidden'); }
+      var methodEmail = document.getElementById('sayaMethodEmail');
+      if (methodEmail) methodEmail.innerText = '';
+      // Reset new PIN steps/modal
+      var resetStep = document.getElementById('sayaStepResetPIN');
+      if (resetStep) { resetStep.classList.add('hidden'); resetStep.style.display = ''; resetStep.style.height = ''; }
+      var offerModal = document.getElementById('sayaPINOfferModal');
+      if (offerModal) offerModal.classList.add('hidden');
+      _sayaOTPMode_ = 'login';
       var otpBoxes = document.querySelectorAll('#sayaStepOTP .otp-box');
       otpBoxes.forEach(function(b) { b.value = ''; b.classList.remove('filled'); });
 

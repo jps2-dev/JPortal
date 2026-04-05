@@ -2177,10 +2177,11 @@
 
       <!-- SWITCH TO OTP -->
       <button id="sayaKirimOTPBtn" onclick="switchToOTPFromPIN_()"
-              class="w-full py-3.5 rounded-2xl bg-gray-50 border border-gray-100
-                    text-sm font-medium text-gray-500
-                    active:scale-95 transition flex items-center justify-center gap-2">
-        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              class="w-full py-3.5 rounded-2xl bg-white border-2 border-gray-200
+                    text-sm font-semibold text-gray-700 shadow-sm
+                    active:scale-95 hover:border-primary hover:text-primary transition-all
+                    flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
           <polyline points="22,6 12,13 2,6"/>
         </svg>
@@ -2188,8 +2189,8 @@
       </button>
 
       <!-- LUPA PIN -->
-      <button id="sayaLupaPINBtn" onclick="switchToOTPFromPIN_()"
-              class="text-xs text-gray-400 text-center w-full">
+      <button id="sayaLupaPINBtn" onclick="switchToResetPINViaOTP_()"
+              class="text-xs text-primary/70 hover:text-primary text-center w-full underline underline-offset-2 transition">
         Lupa PIN? Reset via OTP
       </button>
 
@@ -2255,6 +2256,135 @@
       </button>
     </div>
   </div>
+
+  <!-- ===== STEP: RESET PIN (setelah OTP via "Lupa PIN") ===== -->
+  <div id="sayaStepResetPIN" class="hidden flex-col h-full">
+
+    <!-- HEADER -->
+    <div class="bg-white px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-semibold text-gray-900">Buat PIN Baru</h1>
+        <p class="text-xs text-gray-400 mt-0.5">PIN lama tidak berlaku setelah disimpan</p>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="px-5 pt-8 pb-6 flex flex-col gap-5">
+
+      <div class="flex flex-col items-center gap-1 pb-2">
+        <p class="text-sm text-gray-500 text-center leading-relaxed">
+          Buat PIN 6 digit untuk login lebih cepat.<br>Simpan PIN ini dan jangan bagikan ke siapapun.
+        </p>
+      </div>
+
+      <!-- PIN BARU -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-medium text-gray-400 text-center">PIN Baru (6 digit)</label>
+        <input id="resetPINInput" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
+               class="w-full bg-gray-50 text-gray-900 text-3xl tracking-[0.6em] text-center
+                      rounded-2xl border border-gray-100 px-4 py-4
+                      focus:ring-0 focus:outline-none focus:border-primary focus:bg-white
+                      placeholder:text-gray-200 transition">
+      </div>
+
+      <!-- KONFIRMASI PIN -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-medium text-gray-400 text-center">Konfirmasi PIN Baru</label>
+        <input id="resetPINConfirm" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
+               class="w-full bg-gray-50 text-gray-900 text-3xl tracking-[0.6em] text-center
+                      rounded-2xl border border-gray-100 px-4 py-4
+                      focus:ring-0 focus:outline-none focus:border-primary focus:bg-white
+                      placeholder:text-gray-200 transition">
+      </div>
+
+      <!-- ERROR -->
+      <div id="resetPINError" class="hidden text-sm text-red-500 text-center -mt-2"></div>
+
+      <!-- SUBMIT -->
+      <button id="resetPINSubmitBtn" onclick="submitResetPIN_()"
+              class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-base
+                     active:scale-95 transition shadow-md shadow-primary/20">
+        Simpan PIN Baru
+      </button>
+
+      <!-- SKIP -->
+      <button onclick="skipResetPIN_()"
+              class="text-xs text-gray-400 hover:text-gray-500 text-center w-full transition py-1">
+        Lewati, masuk tanpa reset PIN
+      </button>
+
+    </div>
+  </div><!-- /sayaStepResetPIN -->
+
+  <!-- ===== MODAL: OFFER BUAT PIN (untuk user baru / first OTP) ===== -->
+  <div id="sayaPINOfferModal" class="hidden fixed inset-0 z-50 flex items-end" style="position:absolute;">
+    <!-- BACKDROP -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="skipPINOffer_()"></div>
+
+    <!-- SHEET -->
+    <div class="relative w-full bg-white rounded-t-3xl px-5 pt-5 pb-10 flex flex-col gap-4 shadow-2xl">
+
+      <!-- PULL HANDLE -->
+      <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
+
+      <!-- ICON + JUDUL -->
+      <div class="flex flex-col items-center gap-3 py-2">
+        <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div class="text-center">
+          <h2 class="text-lg font-bold text-gray-900">Login Lebih Cepat dengan PIN 🔐</h2>
+          <p class="text-sm text-gray-400 mt-1 leading-relaxed px-2">
+            Buat PIN 6 digit agar tidak perlu OTP setiap kali login.
+          </p>
+        </div>
+      </div>
+
+      <!-- PIN -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-medium text-gray-400 text-center">PIN (6 digit angka)</label>
+        <input id="offerPINInput" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
+               class="w-full bg-gray-50 text-gray-900 text-3xl tracking-[0.6em] text-center
+                      rounded-2xl border border-gray-100 px-4 py-4
+                      focus:ring-0 focus:outline-none focus:border-primary focus:bg-white
+                      placeholder:text-gray-200 transition">
+      </div>
+
+      <!-- KONFIRMASI -->
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-medium text-gray-400 text-center">Konfirmasi PIN</label>
+        <input id="offerPINConfirm" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
+               class="w-full bg-gray-50 text-gray-900 text-3xl tracking-[0.6em] text-center
+                      rounded-2xl border border-gray-100 px-4 py-4
+                      focus:ring-0 focus:outline-none focus:border-primary focus:bg-white
+                      placeholder:text-gray-200 transition">
+      </div>
+
+      <!-- ERROR -->
+      <div id="offerPINError" class="hidden text-sm text-red-500 text-center -mt-2"></div>
+
+      <!-- BUTTONS -->
+      <button id="offerPINSubmitBtn" onclick="submitPINOffer_()"
+              class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-base
+                     active:scale-95 transition shadow-md shadow-primary/20 mt-1">
+        Buat PIN Sekarang
+      </button>
+      <button onclick="skipPINOffer_()"
+              class="text-sm text-gray-400 hover:text-gray-500 text-center w-full transition py-1">
+        Lewati, masuk dulu
+      </button>
+
+    </div>
+  </div><!-- /sayaPINOfferModal -->
 
   <!-- ===== STEP: LOGGED IN ===== -->
   <div id="sayaLoggedInView" class="hidden flex-col flex-1 min-h-0">
