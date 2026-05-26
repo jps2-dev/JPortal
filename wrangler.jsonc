@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jportal",
+  "compatibility_date": "2026-04-03",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": ".",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "upload_source_maps": false
+}
