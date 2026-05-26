@@ -190,11 +190,13 @@ function gasPost_(action, body) {
         infoEl.classList.add('hidden');
         infoEl.innerText = '';
         updateTarifDisplay_(false);
+        updateNavAdminVisibility();
         return;
       }
 
       infoEl.classList.add('hidden');
       updateTarifDisplay_(true);
+      updateNavAdminVisibility();
     }
 
     function updateTarifDisplay_(isLoggedIn) {
@@ -263,6 +265,20 @@ function gasPost_(action, body) {
       PAGE SAYA (LOGIN PAGE REPLACEMENT)
     ====================================== */
 
+  // Avatar color palette — pick by first char code
+  var _avatarColors_ = [
+    '#4CAF50','#2196F3','#9C27B0','#FF5722','#009688',
+    '#3F51B5','#E91E63','#FF9800','#607D8B','#795548'
+  ];
+  function _renderProfileAvatar_(name) {
+    var el = document.getElementById('sayaProfileAvatar');
+    if (!el) return;
+    var initial = (name || '?').trim().charAt(0).toUpperCase();
+    var colorIdx = ((name || '').charCodeAt(0) || 0) % _avatarColors_.length;
+    el.style.background = _avatarColors_[colorIdx];
+    el.textContent = initial;
+  }
+
     function openPageSaya() {
       var page = document.getElementById('pageSaya');
       if (!page) return;
@@ -303,6 +319,7 @@ function gasPost_(action, body) {
       var profEmail = document.getElementById('sayaProfileEmail');
       if (nameEl)    nameEl.innerText  = currentUser.fullName || '';
       if (profEmail) profEmail.innerText = currentUser.email || '';
+      _renderProfileAvatar_(currentUser.fullName || '');
 
       // ===== RE-RENDER BLOK LIST =====
       function renderSayaWargaData_(data) {
@@ -380,6 +397,7 @@ function gasPost_(action, body) {
     let dashboardPendingCache = [];
     let dashboardConfirmedCache = [];
     let dashboardRejectedCache = [];
+    let wargaScoreFilter = 'all'; // 'all' | 'pending' | 'confirmed'
 
     let customDateRange = null;
 
@@ -1422,6 +1440,12 @@ function gasPost_(action, body) {
           allRates2.length === 0 ||
           allRates2.every(function(r) { return r === allRates2[0]; });
 
+        // Per-house rate: selectedRate might be total when multi-house
+        var _blokCount2 = Math.max(bloksArr2.length, 1);
+        var _perHouseRate2 = allRates2.length > 0
+          ? allRates2[0]
+          : Math.round(selectedRate / _blokCount2);
+
         document.querySelectorAll('.hunian-card').forEach(function(card) {
           card.classList.remove('active');
           if (!allSameRate) {
@@ -1431,12 +1455,14 @@ function gasPost_(action, body) {
             card.style.cursor = 'not-allowed';
             card.title = 'Tarif IPL berbeda antar rumah — tidak dapat diubah manual';
           } else {
-            // Rate sama — enable normal
+            // Rate sama — enable normal, select matching card
             card.disabled = false;
             card.style.opacity = '';
             card.style.cursor = '';
             card.title = '';
-            if (Number(card.dataset.value) === selectedRate) {
+            var cardVal = Number(card.dataset.value);
+            // Match against per-house rate (primary) OR selectedRate directly (single house)
+            if (cardVal === _perHouseRate2 || cardVal === selectedRate) {
               card.classList.add('active');
             }
           }
@@ -1596,9 +1622,12 @@ function gasPost_(action, body) {
             rate = selectedRate;
 
             // Update hunian card UI
+            var _bc3 = (window._wargaBloks_ && window._wargaBloks_.length > 1) ? window._wargaBloks_.length : 1;
+            var _perHouse3 = Math.round(selectedRate / _bc3);
             document.querySelectorAll('.hunian-card').forEach(function(card) {
               card.classList.remove('active');
-              if (Number(card.dataset.value) === selectedRate) {
+              var _cv3 = Number(card.dataset.value);
+              if (_cv3 === _perHouse3 || _cv3 === selectedRate) {
                 card.classList.add('active');
               }
             });
@@ -1668,6 +1697,7 @@ function gasPost_(action, body) {
     // ===== SHEET CONTROL =====
     function openSheet() {
       console.log('OPEN SHEET USER:', currentUser);
+      setActiveNavById('navFabBayarBtn');
       // ===== PUSH HISTORY STATE (ANDROID BACK SUPPORT) =====
       if (!history.state || !history.state.sheet) {
         history.pushState({ sheet: true }, '');
@@ -1904,9 +1934,13 @@ function gasPost_(action, body) {
         email: (emailEl && emailEl.dataset.fullValue) || (emailEl && emailEl.value) || '',
         noHp: (hpEl && hpEl.dataset.fullValue) || (hpEl && hpEl.value) || '',
 
-        statusTinggal: selectedRate === 200000
-          ? 'Rumah Dihuni'
-          : 'Rumah Tidak Dihuni',
+        statusTinggal: (function() {
+          var activeCard = document.querySelector('.hunian-card.active');
+          if (activeCard) return Number(activeCard.dataset.value) === 200000 ? 'Rumah Dihuni' : 'Rumah Tidak Dihuni';
+          // Fallback: derive per-house rate from selectedRate / blok count
+          var _bc = (window._wargaBloks_ && window._wargaBloks_.length > 1) ? window._wargaBloks_.length : 1;
+          return Math.round(selectedRate / _bc) >= 190000 ? 'Rumah Dihuni' : 'Rumah Tidak Dihuni';
+        })(),
 
         rate: selectedRate,
         tahun: Object.keys(selectedMonthsByYear).sort()[0] || selectedYear,
@@ -2691,6 +2725,8 @@ function gasPost_(action, body) {
     activeTimeFilter = 'all';
     activeRateFilter = null;
     customDateRange = null;
+    wargaScoreFilter = 'all';
+    _wargaScorecardBound_ = false;
 
 
     // ===== PUSH HISTORY STATE =====
@@ -2731,6 +2767,23 @@ function gasPost_(action, body) {
       return;
     }
 
+    // Try sessionStorage cache (TTL 3 min) to avoid redundant fetches
+    try {
+      var _ss = sessionStorage.getItem('dashCache');
+      if (_ss) {
+        var _parsed = JSON.parse(_ss);
+        if (_parsed && (Date.now() - (_parsed._ts || 0)) < 3 * 60 * 1000) {
+          dashboardCache = _parsed;
+          dashboardPendingCache   = _parsed.pending   || [];
+          dashboardConfirmedCache = _parsed.confirmed || [];
+          dashboardRejectedCache  = _parsed.rejected  || [];
+          loadingEl.classList.add('hidden');
+          hydrateDashboardFromCache();
+          return;
+        }
+      }
+    } catch(e) {}
+
     loadingEl.classList.remove('hidden');
     loadDashboardWithRetry(0);
   }
@@ -2760,6 +2813,8 @@ function gasPost_(action, body) {
         dashboardPendingCache   = response.pending   || [];
         dashboardConfirmedCache = response.confirmed || [];
         dashboardRejectedCache  = response.rejected  || [];
+        // Save to sessionStorage with timestamp
+        try { response._ts = Date.now(); sessionStorage.setItem('dashCache', JSON.stringify(response)); } catch(e) {}
         hydrateDashboardFromCache();
       })
       .catch(function() {
@@ -2820,6 +2875,7 @@ function gasPost_(action, body) {
     dashboardPendingCache = [];
     dashboardConfirmedCache = [];
     dashboardRejectedCache = [];
+    try { sessionStorage.removeItem('dashCache'); } catch(e) {}
 
     // 🔥 CLEAR UI DULU (BIAR TIDAK TERLIHAT STALE)
     if (listEl) listEl.innerHTML = '';
@@ -2893,23 +2949,78 @@ function gasPost_(action, body) {
   function updateDashboardScorecards() {
     var isAdmin = currentUser && currentUser.role === 'admin';
     var sc = document.getElementById('dashboardScorecards');
-    if (!sc || !isAdmin) return;
-
-    var pending   = dashboardPendingCache   || [];
-    var confirmed = dashboardConfirmedCache || [];
-
-    var pendingAmt   = pending.reduce(function(s, i)   { return s + Number(i.nominal || 0); }, 0);
-    var confirmedAmt = confirmed.reduce(function(s, i) { return s + Number(i.nominal || 0); }, 0);
-    var totalAmt     = confirmedAmt; // total terkumpul = confirmed
-
-    function fmt(n) { return 'Rp ' + n.toLocaleString('id-ID'); }
+    if (!sc) return;
+    sc.classList.remove('hidden');
 
     var el = function(id) { return document.getElementById(id); };
-    if (el('scPendingCount'))   el('scPendingCount').textContent   = pending.length;
-    if (el('scPendingAmount'))  el('scPendingAmount').textContent  = fmt(pendingAmt);
-    if (el('scConfirmedCount')) el('scConfirmedCount').textContent = confirmed.length;
-    if (el('scConfirmedAmount'))el('scConfirmedAmount').textContent= fmt(confirmedAmt);
-    if (el('scTotalAmount'))    el('scTotalAmount').textContent    = fmt(totalAmt);
+    // Compact format: 1.200.000 → 1,2 Jt, 43.825.000 → 43,8 Jt
+    function fmt(n) {
+      n = Number(n);
+      if (n >= 1000000) return 'Rp ' + (n / 1000000).toFixed(1).replace('.', ',') + ' Jt';
+      if (n >= 1000)    return 'Rp ' + Math.round(n / 1000) + ' Rb';
+      return 'Rp ' + n.toLocaleString('id-ID');
+    }
+
+    if (isAdmin) {
+      var pending   = dashboardPendingCache   || [];
+      var confirmed = dashboardConfirmedCache || [];
+      var pendingAmt   = pending.reduce(function(s, i)   { return s + Number(i.nominal || 0); }, 0);
+      var confirmedAmt = confirmed.reduce(function(s, i) { return s + Number(i.nominal || 0); }, 0);
+
+      if (el('scPendingLabel'))    el('scPendingLabel').textContent   = 'Pending';
+      if (el('scPendingCount'))    el('scPendingCount').textContent   = pending.length;
+      if (el('scPendingAmount'))   el('scPendingAmount').textContent  = fmt(pendingAmt);
+      if (el('scConfirmedLabel'))  el('scConfirmedLabel').textContent = 'Dikonfirmasi';
+      if (el('scConfirmedCount'))  el('scConfirmedCount').textContent = confirmed.length;
+      if (el('scConfirmedAmount')) el('scConfirmedAmount').textContent = fmt(confirmedAmt);
+      if (el('scTotalAmount'))     el('scTotalAmount').textContent    = fmt(confirmedAmt);
+      if (el('scTotalLabel'))      el('scTotalLabel').textContent     = 'terkumpul';
+    } else {
+      // Warga: filter by their own email only
+      var myEmail = currentUser && currentUser.email ? currentUser.email.trim().toLowerCase() : '';
+      var wargaPending   = (dashboardPendingCache   || []).filter(function(i) { return (i.email || '').toLowerCase() === myEmail; });
+      var wargaConfirmed = (dashboardConfirmedCache || []).filter(function(i) { return (i.email || '').toLowerCase() === myEmail; });
+      var wargaPendingAmt   = wargaPending.reduce(function(s, i)   { return s + Number(i.nominal || 0); }, 0);
+      var wargaConfirmedAmt = wargaConfirmed.reduce(function(s, i) { return s + Number(i.nominal || 0); }, 0);
+      var wargaTotalAmt = wargaPendingAmt + wargaConfirmedAmt;
+
+      if (el('scPendingLabel'))    el('scPendingLabel').textContent   = 'Menunggu';
+      if (el('scPendingCount'))    el('scPendingCount').textContent   = wargaPending.length;
+      if (el('scPendingAmount'))   el('scPendingAmount').textContent  = fmt(wargaPendingAmt);
+      if (el('scConfirmedLabel'))  el('scConfirmedLabel').textContent = 'Lunas';
+      if (el('scConfirmedCount'))  el('scConfirmedCount').textContent = wargaConfirmed.length;
+      if (el('scConfirmedAmount')) el('scConfirmedAmount').textContent = fmt(wargaConfirmedAmt);
+      if (el('scTotalAmount'))     el('scTotalAmount').textContent    = fmt(wargaTotalAmt);
+      if (el('scTotalLabel'))      el('scTotalLabel').textContent     = 'total submit';
+
+      // Make scorecard cards clickable as filters
+      _bindWargaScorecard_();
+    }
+  }
+
+  var _wargaScorecardBound_ = false;
+  function _bindWargaScorecard_() {
+    if (_wargaScorecardBound_) return;
+    _wargaScorecardBound_ = true;
+    var sc = document.getElementById('dashboardScorecards');
+    if (!sc) return;
+    var cards = sc.querySelectorAll('.flex-1');
+    // cards[0]=pending, cards[1]=confirmed, cards[2]=total
+    var types = ['pending', 'confirmed', 'all'];
+    cards.forEach(function(card, idx) {
+      card.style.cursor = 'pointer';
+      card.style.transition = 'opacity 0.15s, transform 0.15s';
+      card.addEventListener('click', function() {
+        if (navigator.vibrate) navigator.vibrate(20);
+        wargaScoreFilter = types[idx];
+        // Visual: highlight active card
+        cards.forEach(function(c, i) {
+          c.style.opacity = (i === idx) ? '1' : '0.5';
+          c.style.transform = (i === idx) ? 'scale(1.03)' : 'scale(1)';
+        });
+        applyFilters();
+      });
+    });
   }
 
   function closeDashboard() {
@@ -3197,6 +3308,7 @@ function gasPost_(action, body) {
       if (emailStepEl) { emailStepEl.classList.add('hidden'); emailStepEl.style.display = ''; emailStepEl.style.height = ''; }
       document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
       document.getElementById('sayaProfileEmail').innerText = res.user.email;
+      _renderProfileAvatar_(res.user.fullName || 'User');
       var loggedInView = document.getElementById('sayaLoggedInView');
       if (loggedInView) {
         loggedInView.classList.remove('hidden');
@@ -3423,6 +3535,7 @@ function gasPost_(action, body) {
     var profEmail = document.getElementById('sayaProfileEmail');
     if (profName) profName.innerText = user.fullName || 'User';
     if (profEmail) profEmail.innerText = user.email;
+    _renderProfileAvatar_(user.fullName || 'User');
     document.getElementById('sayaLoggedInView').classList.remove('hidden');
     document.body.classList.remove('saya-open');
     switchPage('homePage');
@@ -3746,6 +3859,8 @@ function gasPost_(action, body) {
         dashboardCache = null;
         dashboardPendingCache = [];
         dashboardConfirmedCache = [];
+        // Stop greeting typing animation
+        _greetingToken_++;
         updateHeaderAuthUI();
         closeDashboard();
         showToast('Anda telah logout','success');
@@ -3800,6 +3915,7 @@ function gasPost_(action, body) {
       dashboardCache = null;
       dashboardPendingCache = [];
       dashboardConfirmedCache = [];
+      try { sessionStorage.removeItem('dashCache'); } catch(e) {}
 
       // 2. Update auth UI (tarif mask, header)
       updateHeaderAuthUI();
@@ -4388,10 +4504,17 @@ function gasPost_(action, body) {
       confirmedTab.innerText = filteredConfirmed.length;
     }
 
-    // Warga: render semua sekaligus
+    // Warga: render sesuai scorecard filter
     var isAdmin = currentUser && currentUser.role === 'admin';
     if (!isAdmin) {
-      renderList(getFilteredDataForTab('all_warga'));
+      var allWarga = getFilteredDataForTab('all_warga');
+      var listToRender = allWarga;
+      if (wargaScoreFilter === 'pending') {
+        listToRender = allWarga.filter(function(i) { return i.status === 'pending'; });
+      } else if (wargaScoreFilter === 'confirmed') {
+        listToRender = allWarga.filter(function(i) { return i.status === 'confirmed'; });
+      }
+      renderList(listToRender);
       return;
     }
 
@@ -4631,7 +4754,9 @@ function gasPost_(action, body) {
               yesBtn.disabled = false;
               noBtn.disabled = false;
               yesBtn.innerHTML = 'Ya';
+              try { sessionStorage.removeItem('dashCache'); } catch(e) {}
               applyFilters();
+              updateDashboardScorecards();
               showToast('Pembayaran berhasil dikonfirmasi', 'success');
             } catch(e) {
               console.error('confirmPayment UI error:', e);
@@ -4739,7 +4864,9 @@ function gasPost_(action, body) {
           dashboardPendingCache = dashboardPendingCache.filter(function(d) {
             return d.rowNumber !== rowNumber;
           });
+          try { sessionStorage.removeItem('dashCache'); } catch(e) {}
           applyFilters();
+          updateDashboardScorecards();
           showToast('Pembayaran di-reject', 'success');
         })
         .catch(function() {
@@ -5120,7 +5247,14 @@ function loadHomeData() {
 
 function loadHomeDataIfNeeded() {
     updateHomeGreeting();
-    if (!homeDataCache.greeting) loadHeaderGreeting();
+    if (!homeDataCache.greeting) {
+      loadHeaderGreeting();
+    } else {
+      // Re-trigger typing animation from cached data
+      var greetEl  = document.getElementById('headerGreeting');
+      var textEl   = document.getElementById('headerGreetingText');
+      if (greetEl && textEl) startGreetingRotation_(homeDataCache.greeting, textEl, greetEl);
+    }
     if (!homeDataCache.tunggakan) loadHomeTunggakan();
     if (!homeDataCache.fasum) loadHomeFasum();
     if (!homeDataCache.info) loadHomeInfo();
@@ -5143,39 +5277,85 @@ function loadHeaderGreeting() {
     .catch(function() {});
 }
 
-var _greetingRotateTimer_ = null;
+var _greetingToken_ = 0; // incremented every new run — old runs self-cancel
 
 function startGreetingRotation_(greetings, textEl, greetEl) {
   if (!greetings || !greetings.length) return;
 
-  if (_greetingRotateTimer_) {
-    clearInterval(_greetingRotateTimer_);
-    _greetingRotateTimer_ = null;
-  }
+  // Kill all previous runs
+  _greetingToken_++;
+  var myToken = _greetingToken_;
+
+  greetEl.classList.remove('hidden');
+  textEl.innerText = '';
+  textEl.style.borderRight = '';
+  textEl.style.animation = '';
 
   var idx = 0;
 
-  function show(i) {
-    textEl.style.opacity = '0';
-    textEl.style.transform = 'translateY(4px)';
-    textEl.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  function alive() { return myToken === _greetingToken_; }
 
-    setTimeout(function() {
-      textEl.innerText = greetings[i];
-      greetEl.classList.remove('hidden');
-      textEl.style.opacity = '1';
-      textEl.style.transform = 'translateY(0)';
-    }, 200);
+  function cursorOn()  {
+    textEl.style.borderRight = '2px solid rgba(255,255,255,0.85)';
+    textEl.style.animation   = 'greetCursor 0.5s step-end infinite';
+  }
+  function cursorOff() {
+    textEl.style.borderRight = '';
+    textEl.style.animation   = '';
   }
 
-  show(0);
-
-  if (greetings.length > 1) {
-    _greetingRotateTimer_ = setInterval(function() {
-      idx = (idx + 1) % greetings.length;
-      show(idx);
-    }, 5000);
+  function typeText(text, onDone) {
+    if (!alive()) return;
+    textEl.innerText = '';
+    cursorOn();
+    var i = 0;
+    (function tick() {
+      if (!alive()) return;
+      if (i <= text.length) {
+        textEl.innerText = text.slice(0, i);
+        i++;
+        setTimeout(tick, 55);
+      } else {
+        cursorOff();
+        if (onDone) setTimeout(onDone, greetings.length > 1 ? 2800 : 9999999);
+      }
+    })();
   }
+
+  function eraseText(onDone) {
+    if (!alive()) return;
+    cursorOn();
+    var str = textEl.innerText;
+    var i   = str.length;
+    (function tick() {
+      if (!alive()) return;
+      if (i >= 0) {
+        textEl.innerText = str.slice(0, i);
+        i--;
+        setTimeout(tick, 28);
+      } else {
+        cursorOff();
+        if (onDone) setTimeout(onDone, 180);
+      }
+    })();
+  }
+
+  function showNext() {
+    if (!alive()) return;
+    if (greetings.length > 1) {
+      eraseText(function() {
+        if (!alive()) return;
+        idx = (idx + 1) % greetings.length;
+        typeText(greetings[idx], showNext);
+      });
+    }
+  }
+
+  // Small delay so page-transition animation doesn't overlap
+  setTimeout(function() {
+    if (!alive()) return;
+    typeText(greetings[0], showNext);
+  }, 300);
 }
 
 function preloadContactData() {
@@ -5653,9 +5833,9 @@ function getFasumIconSvg(key) {
 
 function getFasumStatusStyle(status) {
   var s = (status || '').toLowerCase();
-  if (s === 'normal')      return { dot: 'bg-green-400',  text: 'text-green-600',  label: 'Normal',      cardBg: 'bg-green-50',  cardBorder: 'border-green-100', iconBg: 'bg-green-100',  iconColor: 'text-green-600'  };
-  if (s === 'maintenance') return { dot: 'bg-yellow-400', text: 'text-yellow-600', label: 'Maintenance', cardBg: 'bg-yellow-50', cardBorder: 'border-yellow-100',iconBg: 'bg-yellow-100', iconColor: 'text-yellow-600' };
-  return                          { dot: 'bg-red-400',    text: 'text-red-600',    label: status || 'Gangguan', cardBg: 'bg-red-50', cardBorder: 'border-red-100', iconBg: 'bg-red-100', iconColor: 'text-red-500' };
+  if (s === 'normal')      return { dot: 'bg-green-400',  text: 'text-green-700',  label: 'Normal',      cardBg: 'bg-gradient-to-b from-green-50 to-white',  cardBorder: 'border-green-100', iconBg: 'bg-green-500',  iconColor: 'text-white', pillBg: 'bg-green-100', pillText: 'text-green-700' };
+  if (s === 'maintenance') return { dot: 'bg-amber-400',  text: 'text-amber-700',  label: 'Maintenance', cardBg: 'bg-gradient-to-b from-amber-50 to-white',  cardBorder: 'border-amber-100', iconBg: 'bg-amber-400',  iconColor: 'text-white', pillBg: 'bg-amber-100', pillText: 'text-amber-700' };
+  return                          { dot: 'bg-red-400',    text: 'text-red-700',    label: status || 'Gangguan', cardBg: 'bg-gradient-to-b from-red-50 to-white', cardBorder: 'border-red-100', iconBg: 'bg-red-500', iconColor: 'text-white', pillBg: 'bg-red-100', pillText: 'text-red-700' };
 }
 
 function loadHomeFasum() {
@@ -5680,20 +5860,16 @@ function loadHomeFasum() {
 function buildFasumItemHtml(f) {
   var st  = getFasumStatusStyle(f.status);
   var ico = getFasumIconSvg(f.icon);
-  return '<div class="rounded-2xl overflow-hidden border ' + st.cardBorder + ' flex flex-col">' +
-    // TOP: icon area
-    '<div class="' + st.cardBg + ' px-3 pt-3 pb-4 flex flex-col items-center gap-2 flex-1">' +
-      '<div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center ' + st.iconBg + '">' +
-        '<svg class="w-5 h-5 ' + st.iconColor + '" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' +
-          ico +
-        '</svg>' +
-      '</div>' +
-      '<p class="text-[11px] font-semibold text-gray-800 leading-tight text-center line-clamp-2">' + f.nama + '</p>' +
+  return '<div class="fasum-card rounded-2xl border ' + st.cardBorder + ' ' + st.cardBg + ' flex flex-col items-center pt-3.5 pb-3 px-2 gap-1.5">' +
+    '<div class="w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm ' + st.iconBg + '">' +
+      '<svg class="w-5 h-5 ' + st.iconColor + '" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">' +
+        ico +
+      '</svg>' +
     '</div>' +
-    // BOTTOM: status strip rata bawah
-    '<div class="flex items-center justify-center gap-1 py-1.5 bg-white border-t ' + st.cardBorder + '">' +
+    '<p class="text-[10.5px] font-bold text-gray-800 leading-snug text-center line-clamp-2 w-full">' + f.nama + '</p>' +
+    '<div class="flex items-center gap-1 rounded-full px-2 py-0.5 mt-auto ' + st.pillBg + '">' +
       '<div class="w-1.5 h-1.5 rounded-full flex-shrink-0 ' + st.dot + '"></div>' +
-      '<span class="text-[10px] font-semibold ' + st.text + '">' + st.label + '</span>' +
+      '<span class="text-[9px] font-semibold ' + st.pillText + ' whitespace-nowrap">' + st.label + '</span>' +
     '</div>' +
   '</div>';
 }
@@ -5703,9 +5879,7 @@ function renderFasumList(showAll) {
   var res = homeDataCache.fasum;
   if (!el || !res || !res.data) return;
 
-  // Grid cols: 3 jika ≤6, 2 jika >6 tapi genap, 3 default
-  el.className = 'grid grid-cols-3 gap-2 px-4 pb-4';
-
+  el.className = 'grid grid-cols-3 gap-2.5 px-4 pb-4 pt-2';
   el.innerHTML = res.data.map(buildFasumItemHtml).join('');
 }
 
@@ -6361,18 +6535,16 @@ function closeAboutModal() {
 /* ============================================================
    EXPLORE PAGE
    ============================================================ */
-function openExplore() {
-  var explorePage = document.getElementById('explorePage');
-  var alreadyActive = explorePage && explorePage.classList.contains('active');
+function openExplore() { openAdminPage(); } // legacy alias
 
+function openAdminPage() {
+  if (!currentUser || currentUser.role !== 'admin') return;
   switchPage('explorePage');
-  setActiveNavById('navService');
+  setActiveNavById('navAdmin');
   refreshAdminExploreSection();
   if (!history.state || !history.state.explore) {
     history.pushState({ explore: true }, '');
   }
-
-  // Jika sudah di explore → scroll to top
   var exploreScroll = document.querySelector('#explorePage .flex-1.overflow-y-auto');
   if (exploreScroll) exploreScroll.scrollTop = 0;
 }
@@ -6384,6 +6556,20 @@ function openExplore() {
 var _infoCRUDCache = null;
 var _fasumCRUDCache = null;
 
+// ===== SHOW/HIDE navAdmin BASED ON ROLE =====
+function updateNavAdminVisibility() {
+  var btn = document.getElementById('navAdmin');
+  if (!btn) return;
+  var isAdmin = currentUser && currentUser.role === 'admin';
+  if (isAdmin) {
+    btn.classList.remove('hidden');
+    btn.classList.add('flex');
+  } else {
+    btn.classList.add('hidden');
+    btn.classList.remove('flex');
+  }
+}
+
 // ===== SHOW/HIDE ADMIN SECTION =====
 function refreshAdminExploreSection(forceRefresh) {
   var sec = document.getElementById('adminExploreSection');
@@ -6393,28 +6579,50 @@ function refreshAdminExploreSection(forceRefresh) {
     if (forceRefresh) {
       _infoCRUDCache = null;
       _fasumCRUDCache = null;
+      _greetingCRUDCache = null;
+      _dataWargaCache = null;
+      _ssClearExplore_();
     }
     loadAdminInfoPreview();
     loadAdminFasumPreview();
+    loadAdminGreetingPreview();
+    loadAdminWargaPreview();
   } else {
     sec.classList.add('hidden');
   }
 }
 
+var _EXPLORE_CACHE_TTL = 5 * 60 * 1000; // 5 menit
+
+function _ssGetExplore_(key) {
+  try {
+    var raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    var p = JSON.parse(raw);
+    if (Date.now() - (p._ts || 0) > _EXPLORE_CACHE_TTL) { sessionStorage.removeItem(key); return null; }
+    return p;
+  } catch(e) { return null; }
+}
+function _ssSetExplore_(key, data) {
+  try { data._ts = Date.now(); sessionStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+}
+function _ssClearExplore_() {
+  try { sessionStorage.removeItem('exploreInfoCache'); sessionStorage.removeItem('exploreFasumCache'); } catch(e) {}
+}
+
 function loadAdminInfoPreview() {
   var el = document.getElementById('adminInfoPreviewList');
   if (!el) return;
-  // Gunakan cache jika ada
-  if (_infoCRUDCache) {
-    renderAdminInfoPreview_(_infoCRUDCache);
-    return;
-  }
+  if (_infoCRUDCache) { renderAdminInfoPreview_(_infoCRUDCache); return; }
+  // Try sessionStorage
+  var cached = _ssGetExplore_('exploreInfoCache');
+  if (cached) { _infoCRUDCache = cached; renderAdminInfoPreview_(cached); return; }
   el.innerHTML = '<div class="space-y-2 py-1">' +
     '<div class="h-5 rounded-lg bg-gray-100 animate-pulse w-3/4"></div>' +
     '<div class="h-5 rounded-lg bg-gray-100 animate-pulse w-1/2"></div>' +
     '</div>';
   gasGet_('adminGetInfoData')
-    .then(function(res) { _infoCRUDCache = res; renderAdminInfoPreview_(res); })
+    .then(function(res) { _infoCRUDCache = res; _ssSetExplore_('exploreInfoCache', res); renderAdminInfoPreview_(res); })
     .catch(function() {});
 }
 
@@ -6454,16 +6662,16 @@ function renderAdminFasumPreview_(res) {
 function loadAdminFasumPreview() {
   var el = document.getElementById('adminFasumPreviewList');
   if (!el) return;
-  if (_fasumCRUDCache) {
-    renderAdminFasumPreview_(_fasumCRUDCache);
-    return;
-  }
+  if (_fasumCRUDCache) { renderAdminFasumPreview_(_fasumCRUDCache); return; }
+  // Try sessionStorage
+  var cached = _ssGetExplore_('exploreFasumCache');
+  if (cached) { _fasumCRUDCache = cached; renderAdminFasumPreview_(cached); return; }
   el.innerHTML = '<div class="space-y-2 py-1">' +
     '<div class="h-5 rounded-lg bg-gray-100 animate-pulse w-3/4"></div>' +
     '<div class="h-5 rounded-lg bg-gray-100 animate-pulse w-1/2"></div>' +
     '</div>';
   gasGet_('adminGetFasumData')
-    .then(function(res) { _fasumCRUDCache = res; renderAdminFasumPreview_(res); })
+    .then(function(res) { _fasumCRUDCache = res; _ssSetExplore_('exploreFasumCache', res); renderAdminFasumPreview_(res); })
     .catch(function() {});
 }
 
@@ -6626,9 +6834,11 @@ function saveInfoForm() {
       btn.innerText = 'Simpan';
       closeInfoForm();
       _infoCRUDCache = null;
+      sessionStorage.removeItem('exploreInfoCache');
       gasGet_('adminGetInfoData')
         .then(function(res) {
           _infoCRUDCache = res;
+          _ssSetExplore_('exploreInfoCache', res);
           renderInfoCRUDList(res);
           loadAdminInfoPreview();
           homeDataCache.info = null;
@@ -6650,9 +6860,11 @@ function deleteInfo(rowNumber) {
         showToast('Info dihapus', 'success');
         _infoCRUDCache = null;
         homeDataCache.info = null;
+        sessionStorage.removeItem('exploreInfoCache');
         gasGet_('adminGetInfoData')
           .then(function(res2) {
             _infoCRUDCache = res2;
+            _ssSetExplore_('exploreInfoCache', res2);
             renderInfoCRUDList(res2);
             loadAdminInfoPreview();
           });
@@ -6752,9 +6964,11 @@ function saveFasumForm() {
         btn.innerText = 'Simpan';
         closeFasumForm();
         _fasumCRUDCache = null;
+        sessionStorage.removeItem('exploreFasumCache');
         gasGet_('adminGetFasumData')
           .then(function(res) {
             _fasumCRUDCache = res;
+            _ssSetExplore_('exploreFasumCache', res);
             renderFasumCRUDList(res);
             loadAdminFasumPreview();
             homeDataCache.fasum = null;
@@ -6777,9 +6991,11 @@ function deleteFasum(rowNumber) {
       showToast('Fasum dihapus', 'success');
       _fasumCRUDCache = null;
       homeDataCache.fasum = null;
+      sessionStorage.removeItem('exploreFasumCache');
       gasGet_('adminGetFasumData')
         .then(function(res2) {
           _fasumCRUDCache = res2;
+          _ssSetExplore_('exploreFasumCache', res2);
           renderFasumCRUDList(res2);
           loadAdminFasumPreview();
           loadHomeFasum();
@@ -6792,8 +7008,376 @@ function deleteFasum(rowNumber) {
 }
 
 /* ============================================================
+   ADMIN CRUD: DATA WARGA
+   ============================================================ */
+var _dataWargaCache = null;
+var _dataWargaMap   = {};
+var _dataWargaFiltered = [];
+
+function openDataWargaCRUD() {
+  var modal = document.getElementById('dataWargaCRUDModal');
+  modal.classList.remove('hidden');
+  var searchEl = document.getElementById('dataWargaSearch');
+  if (searchEl) searchEl.value = '';
+  if (_dataWargaCache) {
+    renderDataWargaList(_dataWargaCache);
+  } else {
+    _showDataWargaLoading_();
+    gasGet_('adminGetDataWarga')
+      .then(function(res) { _dataWargaCache = res; renderDataWargaList(res); })
+      .catch(function() {
+        var el = document.getElementById('dataWargaCRUDList');
+        if (el) el.innerHTML = '<p class="text-sm text-red-400 text-center py-6">Gagal memuat data. Coba lagi.</p>';
+      });
+  }
+}
+
+function _showDataWargaLoading_() {
+  var el = document.getElementById('dataWargaCRUDList');
+  if (!el) return;
+  el.innerHTML = '<div class="flex flex-col items-center justify-center py-10 gap-3">' +
+    '<svg class="w-7 h-7 text-green-500 animate-spin" fill="none" viewBox="0 0 24 24">' +
+      '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+      '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>' +
+    '</svg>' +
+    '<p class="text-xs text-gray-400">Memuat data warga...</p>' +
+  '</div>';
+}
+
+function closeDataWargaCRUD() {
+  document.getElementById('dataWargaCRUDModal').classList.add('hidden');
+}
+
+function renderDataWargaList(res, filtered) {
+  var el = document.getElementById('dataWargaCRUDList');
+  if (!el) return;
+  var list = filtered || (res && res.data) || [];
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="text-sm text-red-400 text-center py-6">Gagal memuat data.</p>';
+    return;
+  }
+  if (!list.length) {
+    el.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">Tidak ada data warga.</p>';
+    return;
+  }
+  _dataWargaMap = {};
+  (res.data || []).forEach(function(d) { _dataWargaMap[d.rowNumber] = d; });
+  el.innerHTML = list.map(function(d) {
+    return '<div class="bg-gray-50 rounded-2xl px-4 py-3 flex items-center gap-3">' +
+      '<div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-black text-sm" style="background:' + _avatarColors_[d.blok.charCodeAt(0) % _avatarColors_.length] + '">' +
+        d.blok.charAt(0) +
+      '</div>' +
+      '<div class="flex-1 min-w-0">' +
+        '<p class="text-sm font-bold text-gray-900 truncate">' + d.blok + ' · ' + (d.nama || '—') + '</p>' +
+        '<p class="text-[11px] text-gray-400 truncate">' + (d.email || '—') + '</p>' +
+      '</div>' +
+      '<div class="flex gap-1.5 flex-shrink-0">' +
+        '<button onclick="openDataWargaFormByRow(' + d.rowNumber + ')" class="w-8 h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center active:scale-95 transition">' +
+          '<svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+        '<button onclick="deleteDataWargaConfirm(' + d.rowNumber + ')" class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center active:scale-95 transition">' +
+          '<svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterDataWargaList() {
+  var kw = (document.getElementById('dataWargaSearch')?.value || '').toLowerCase().trim();
+  if (!_dataWargaCache || !_dataWargaCache.data) return;
+  var filtered = kw
+    ? _dataWargaCache.data.filter(function(d) {
+        return (d.blok + ' ' + d.nama + ' ' + d.email).toLowerCase().indexOf(kw) !== -1;
+      })
+    : _dataWargaCache.data;
+  renderDataWargaList(_dataWargaCache, filtered);
+}
+
+function openDataWargaFormByRow(rowNumber) {
+  var d = _dataWargaMap[rowNumber];
+  if (!d) return;
+  openDataWargaForm(d);
+}
+
+function openDataWargaForm(data) {
+  document.getElementById('dataWargaFormModal').classList.remove('hidden');
+  document.getElementById('dataWargaFormTitle').innerText = data ? 'Edit Warga' : 'Tambah Warga';
+  document.getElementById('dataWargaFormRow').value   = data ? data.rowNumber : '';
+  document.getElementById('dataWargaFormBlok').value  = data ? data.blok  : '';
+  document.getElementById('dataWargaFormNama').value  = data ? data.nama  : '';
+  document.getElementById('dataWargaFormHp').value    = data ? data.noHp  : '';
+  document.getElementById('dataWargaFormEmail').value = data ? data.email : '';
+}
+
+function closeDataWargaForm() {
+  document.getElementById('dataWargaFormModal').classList.add('hidden');
+}
+
+function saveDataWargaForm() {
+  var blok = document.getElementById('dataWargaFormBlok').value.trim().toUpperCase();
+  var nama = document.getElementById('dataWargaFormNama').value.trim();
+  if (!blok || !nama) { showToast('Blok dan Nama wajib diisi', 'error'); return; }
+
+  var btn = document.getElementById('dataWargaFormSaveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:6px">' +
+    '<svg style="width:16px;height:16px;animation:spin 1s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    '<circle cx="12" cy="12" r="10" stroke-opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10"/>' +
+    '</svg>Menyimpan...</span>';
+
+  var payload = {
+    rowNumber : parseInt(document.getElementById('dataWargaFormRow').value) || null,
+    blok  : blok,
+    nama  : nama,
+    noHp  : document.getElementById('dataWargaFormHp').value.trim(),
+    email : document.getElementById('dataWargaFormEmail').value.trim().toLowerCase()
+  };
+
+  gasPost_('adminSaveDataWarga', { payload: payload })
+    .then(function() {
+      btn.disabled = false; btn.innerText = 'Simpan';
+      closeDataWargaForm();
+      _dataWargaCache = null;
+      gasGet_('adminGetDataWarga').then(function(res) {
+        _dataWargaCache = res;
+        renderDataWargaList(res);
+        loadAdminWargaPreview();
+      });
+      showToast('Data warga disimpan', 'success');
+    })
+    .catch(function() {
+      btn.disabled = false; btn.innerText = 'Simpan';
+      showToast('Gagal menyimpan', 'error');
+    });
+}
+
+function deleteDataWargaConfirm(rowNumber) {
+  var d = _dataWargaMap[rowNumber];
+  var label = d ? (d.blok + ' · ' + d.nama) : 'warga ini';
+  showDeleteConfirm('Hapus ' + label + '?', function() { deleteDataWarga(rowNumber); });
+}
+
+function deleteDataWarga(rowNumber) {
+  gasPost_('adminDeleteDataWarga', { rowNumber: rowNumber })
+    .then(function(res) {
+      if (!res || !res.ok) { showToast('Gagal menghapus', 'error'); return; }
+      closeDeleteConfirm();
+      showToast('Data warga dihapus', 'success');
+      _dataWargaCache = null;
+      gasGet_('adminGetDataWarga').then(function(res2) {
+        _dataWargaCache = res2;
+        renderDataWargaList(res2);
+        loadAdminWargaPreview();
+      });
+    })
+    .catch(function() { closeDeleteConfirm(); showToast('Gagal menghapus', 'error'); });
+}
+
+function loadAdminWargaPreview() {
+  var el = document.getElementById('adminWargaPreviewList');
+  if (!el) return;
+  gasGet_('adminGetDataWarga').then(function(res) {
+    if (!res || !res.ok || !res.data || !res.data.length) {
+      el.innerHTML = '<p class="text-xs text-gray-400 py-2 text-center">Belum ada data</p>';
+      return;
+    }
+    var total = res.data.length;
+    // Group by first letter of blok (A/B/C/D)
+    var groups = {};
+    res.data.forEach(function(d) { var k = d.blok.charAt(0); groups[k] = (groups[k]||0)+1; });
+    var groupStr = Object.keys(groups).sort().map(function(k){ return 'Blok '+k+' ('+groups[k]+')'; }).join(' · ');
+    el.innerHTML = '<div class="flex items-center justify-between py-1">' +
+      '<span class="text-xs text-gray-700 font-medium">' + total + ' warga terdaftar</span>' +
+      '<span class="text-[10px] text-gray-400">' + groupStr + '</span>' +
+    '</div>';
+  }).catch(function() {
+    el.innerHTML = '<p class="text-xs text-red-400 py-2 text-center">Gagal memuat</p>';
+  });
+}
+
+/* ============================================================
+   ADMIN CRUD: GREETING
+   ============================================================ */
+var _greetingCRUDCache = null;
+var _greetingDataMap = {};
+
+function openGreetingCRUD() {
+  var modal = document.getElementById('greetingCRUDModal');
+  modal.classList.remove('hidden');
+  if (_greetingCRUDCache) {
+    renderGreetingCRUDList(_greetingCRUDCache);
+  } else {
+    var el = document.getElementById('greetingCRUDList');
+    if (el) el.innerHTML = '<div class="flex flex-col items-center justify-center py-10 gap-3">' +
+      '<svg class="w-7 h-7 text-green-500 animate-spin" fill="none" viewBox="0 0 24 24">' +
+        '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>' +
+      '</svg>' +
+      '<p class="text-xs text-gray-400">Memuat greeting...</p>' +
+    '</div>';
+    gasGet_('adminGetGreetings')
+      .then(function(res) { _greetingCRUDCache = res; renderGreetingCRUDList(res); })
+      .catch(function() {
+        if (el) el.innerHTML = '<p class="text-sm text-red-400 text-center py-6">Gagal memuat. Coba lagi.</p>';
+      });
+  }
+}
+
+function closeGreetingCRUD() {
+  document.getElementById('greetingCRUDModal').classList.add('hidden');
+}
+
+function renderGreetingCRUDList(res) {
+  var el = document.getElementById('greetingCRUDList');
+  if (!el) return;
+  if (!res || !res.ok || !res.data || !res.data.length) {
+    el.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">Belum ada greeting. Tap + Tambah untuk mulai.</p>';
+    return;
+  }
+  _greetingDataMap = {};
+  res.data.forEach(function(d) { _greetingDataMap[d.rowNumber] = d; });
+  el.innerHTML = res.data.map(function(d) {
+    return '<div class="bg-gray-50 rounded-2xl px-4 py-3 flex items-start justify-between gap-3">' +
+      '<div class="flex-1 min-w-0">' +
+        '<div class="flex items-center gap-2 mb-0.5">' +
+          '<span class="text-sm font-semibold text-gray-900 truncate">' + d.teks + '</span>' +
+          '<span class="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ' + (d.aktif ? 'bg-green-50 text-green-600' : 'bg-gray-200 text-gray-400') + ' font-medium">' + (d.aktif ? 'Aktif' : 'Nonaktif') + '</span>' +
+        '</div>' +
+        '<span class="text-[11px] text-gray-400">' + (d.mulai || '') + ' → ' + (d.stop || '') + '</span>' +
+      '</div>' +
+      '<div class="flex gap-1.5 flex-shrink-0">' +
+        '<button onclick="openGreetingFormByRow(' + d.rowNumber + ')" class="w-8 h-8 rounded-xl bg-white border border-gray-200 flex items-center justify-center active:scale-95 transition">' +
+          '<svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+        '<button onclick="deleteGreetingConfirm(' + d.rowNumber + ')" class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center active:scale-95 transition">' +
+          '<svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openGreetingFormByRow(rowNumber) {
+  var d = _greetingDataMap[rowNumber];
+  if (!d) return;
+  openGreetingForm(d);
+}
+
+function openGreetingForm(data) {
+  document.getElementById('greetingFormModal').classList.remove('hidden');
+  document.getElementById('greetingFormTitle').innerText = data ? 'Edit Greeting' : 'Tambah Greeting';
+  document.getElementById('greetingFormRow').value = data ? data.rowNumber : '';
+  document.getElementById('greetingFormTeks').value = data ? data.teks : '';
+  document.getElementById('greetingFormMulai').value = data ? data.mulai : new Date().toISOString().split('T')[0];
+  document.getElementById('greetingFormStop').value = data ? data.stop : new Date().toISOString().split('T')[0];
+  document.getElementById('greetingFormAktif').checked = data ? data.aktif : true;
+}
+
+function closeGreetingForm() {
+  document.getElementById('greetingFormModal').classList.add('hidden');
+}
+
+function saveGreetingForm() {
+  var btn = document.getElementById('greetingFormSaveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:flex;align-items:center;justify-content:center;gap:6px">' +
+    '<svg style="width:16px;height:16px;animation:spin 1s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    '<circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>' +
+    '<path d="M12 2a10 10 0 0 1 10 10"/>' +
+    '</svg>Menyimpan...</span>';
+  var payload = {
+    rowNumber : parseInt(document.getElementById('greetingFormRow').value) || null,
+    teks      : document.getElementById('greetingFormTeks').value.trim(),
+    mulai     : document.getElementById('greetingFormMulai').value,
+    stop      : document.getElementById('greetingFormStop').value,
+    aktif     : document.getElementById('greetingFormAktif').checked
+  };
+  gasPost_('adminSaveGreeting', { payload: payload })
+    .then(function() {
+      btn.disabled = false;
+      btn.innerText = 'Simpan';
+      closeGreetingForm();
+      _greetingCRUDCache = null;
+      gasGet_('adminGetGreetings')
+        .then(function(res) {
+          _greetingCRUDCache = res;
+          renderGreetingCRUDList(res);
+          loadAdminGreetingPreview();
+        });
+      showToast('Greeting berhasil disimpan', 'success');
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.innerText = 'Simpan';
+      showToast('Gagal menyimpan', 'error');
+    });
+}
+
+function deleteGreetingConfirm(rowNumber) {
+  showDeleteConfirm('Hapus greeting ini?', function() { deleteGreeting(rowNumber); });
+}
+
+function deleteGreeting(rowNumber) {
+  gasPost_('adminDeleteGreeting', { rowNumber: rowNumber })
+    .then(function(res) {
+      if (!res || !res.ok) { showToast('Gagal menghapus greeting', 'error'); return; }
+      closeDeleteConfirm();
+      showToast('Greeting dihapus', 'success');
+      _greetingCRUDCache = null;
+      gasGet_('adminGetGreetings')
+        .then(function(res2) {
+          _greetingCRUDCache = res2;
+          renderGreetingCRUDList(res2);
+          loadAdminGreetingPreview();
+        });
+    })
+    .catch(function() {
+      closeDeleteConfirm();
+      showToast('Gagal menghapus', 'error');
+    });
+}
+
+function loadAdminGreetingPreview() {
+  var el = document.getElementById('adminGreetingPreviewList');
+  if (!el) return;
+  gasGet_('adminGetGreetings')
+    .then(function(res) {
+      if (!res || !res.ok || !res.data || !res.data.length) {
+        el.innerHTML = '<p class="text-xs text-gray-400 py-2 text-center">Belum ada greeting</p>';
+        return;
+      }
+      el.innerHTML = res.data.slice(0, 3).map(function(d) {
+        return '<div class="flex items-center gap-2 py-1">' +
+          '<span class="w-1.5 h-1.5 rounded-full flex-shrink-0 ' + (d.aktif ? 'bg-green-400' : 'bg-gray-300') + '"></span>' +
+          '<span class="text-xs text-gray-700 truncate flex-1">' + d.teks + '</span>' +
+          '<span class="text-[10px] text-gray-400 flex-shrink-0">' + (d.mulai || '') + '</span>' +
+        '</div>';
+      }).join('');
+    })
+    .catch(function() {
+      el.innerHTML = '<p class="text-xs text-red-400 py-2 text-center">Gagal memuat</p>';
+    });
+}
+
+/* ============================================================
    FORM MUDIK
    ============================================================ */
+function scrollToPedoman() {
+  if (navigator.vibrate) navigator.vibrate(40);
+  switchPage('homePage');
+  setActiveNavById('navHome');
+  setTimeout(function() {
+    var sec = document.getElementById('homePedomanSection');
+    if (!sec) return;
+    sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function() {
+      sec.classList.add('shake');
+      setTimeout(function() { sec.classList.remove('shake'); }, 400);
+    }, 500);
+  }, 100);
+}
+
 function openFormMudik() {
   var el = document.getElementById('formMudik');
   if (!el) return;
@@ -7030,6 +7614,20 @@ function closeFormRenovasi() {
   var ov = document.getElementById('overlay');
   if (ov) { ov.classList.add('hidden'); document.body.style.overflow = ''; }
   if (history.state && history.state.formRenovasi) history.back();
+}
+
+function renovHighlightAgreement() {
+  var setuju = document.querySelector('input[name="renovSetuju"]:checked')?.value;
+  var ya    = document.getElementById('renovSetujuYaLabel');
+  var tidak = document.getElementById('renovSetujuTidakLabel');
+  if (!ya || !tidak) return;
+  if (setuju === 'Setuju') {
+    ya.style.background    = '#FFF7ED'; ya.style.borderColor = '#EA580C';
+    tidak.style.background = ''; tidak.style.borderColor = '#D1D5DB';
+  } else if (setuju === 'Tidak Setuju') {
+    tidak.style.background = '#FEF2F2'; tidak.style.borderColor = '#EF4444';
+    ya.style.background    = ''; ya.style.borderColor = '#E5E7EB';
+  }
 }
 
 function updateRenovSubmitBtn() {
@@ -7673,18 +8271,18 @@ function _showKasIplFallback_(container, url, year) {
 function _renderKasIpl2026List_(container, files) {
   var div = document.createElement('div');
   div.id = 'kasIplFallbackBanner';
-  div.style.cssText = 'position:absolute;inset:0;background:#f9fafb;overflow-y:auto;z-index:10;';
+  div.style.cssText = 'position:absolute;inset:0;background:#f9fafb;overflow-y:auto;z-index:10;-webkit-overflow-scrolling:touch;';
 
   var isPdf = function(mime) {
     return mime && mime.toLowerCase().includes('pdf');
   };
 
   var html =
-    '<div style="padding:16px;">' +
-      '<p style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px 4px;">' +
+    '<div style="padding:16px 16px 32px;">' +
+      '<p style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px 2px;">' +
         files.length + ' Dokumen Tersedia' +
       '</p>' +
-      '<div style="display:flex;flex-direction:column;gap:8px;">';
+      '<div style="display:flex;flex-direction:column;gap:10px;">';
 
   files.forEach(function(f) {
     var icon = isPdf(f.mimeType)
@@ -7708,21 +8306,23 @@ function _renderKasIpl2026List_(container, files) {
 
     html +=
       '<button onclick="_openKasFile_(\'' + f.id + '\', \'' + escapedName + '\')" ' +
-         'style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;' +
-                'background:#ffffff;border-radius:16px;' +
-                'padding:12px;border:1px solid #f3f4f6;' +
-                'box-shadow:0 1px 3px rgba(0,0,0,0.06);">' +
+         'style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;' +
+                'background:#ffffff;border-radius:18px;' +
+                'padding:14px 14px;border:1px solid #f3f4f6;' +
+                'box-shadow:0 1px 4px rgba(0,0,0,0.05);-webkit-tap-highlight-color:transparent;">' +
         icon +
         '<div style="flex:1;min-width:0;">' +
-          '<p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 2px 0;' +
+          '<p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 3px 0;' +
                     'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
             f.name +
           '</p>' +
-          '<p style="font-size:11px;color:#9ca3af;margin:0;">' + f.date + '</p>' +
+          '<p style="font-size:11px;color:#9ca3af;margin:0;font-weight:500;">' + f.date + '</p>' +
         '</div>' +
-        '<svg width="16" height="16" fill="none" stroke="#d1d5db" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">' +
-          '<path d="M9 18l6-6-6-6"/>' +
-        '</svg>' +
+        '<div style="width:28px;height:28px;border-radius:8px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+          '<svg width="14" height="14" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24">' +
+            '<path d="M9 18l6-6-6-6"/>' +
+          '</svg>' +
+        '</div>' +
       '</button>';
   });
 

@@ -1,4 +1,23 @@
 
+/* ===== GLOBAL FONT — Inter (closest to Grab/Gojek) ===== */
+html, body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+*, *::before, *::after {
+  font-family: inherit;
+}
+
+/* ===== GREETING TYPING CURSOR — global so inline style.animation works ===== */
+@keyframes greetCursor {
+  0%, 100% { border-right-color: rgba(255,255,255,0.9); }
+  50%       { border-right-color: transparent; }
+}
+#headerGreetingText {
+  display: inline-block;
+}
+
     .app-input {
       width: 100%;
       padding: 14px;
@@ -531,43 +550,26 @@
     box-sizing: border-box;
   }
 
+  /* ── Mobile bottom nav items ── */
   .nav-app {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 8px 16px;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 500;
+    gap: 3px;
     color: #9CA3AF;
-    transition: all 0.2s ease;
-    min-width: 60px;
+    transition: color 0.18s ease;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     cursor: pointer;
   }
 
-  .nav-app.active {
-    color: #43A047;
-    background-color: #F0FBF0;
-    font-weight: 600;
-  }
+  .nav-label { color: inherit; }
 
-  .nav-app.active svg {
-    stroke: #43A047;
-  }
-
-  /* DOT INDICATOR */
-  .nav-app.active::after {
-    content: "";
-    position: absolute;
-    bottom: 0px;      /* 🔥 fix */
-    width: 16px;
-    height: 3px;
-    background: #43A047;
-    border-radius: 9999px;
+  /* Active pill highlight on the icon wrap */
+  .nav-app.active { color: #43A047; }
+  .nav-app.active .nav-icon-wrap {
+    background: rgba(67,160,71,0.10);
   }
 
   .animate-spin {
@@ -727,27 +729,53 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes splashBlurIn {
-    0%   { opacity: 0; filter: blur(16px); transform: scale(0.94); }
-    60%  { opacity: 1; filter: blur(2px);  transform: scale(1.01); }
-    100% { opacity: 1; filter: blur(0px);  transform: scale(1);    }
+  /* Greeting typing cursor blink — defined globally so inline style.animation works */
+
+  @keyframes splashLogoIn {
+    0%   { opacity: 0; transform: scale(0.6) translateY(8px); }
+    70%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
   }
 
-  @keyframes splashDotsIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+  @keyframes splashLetterIn {
+    0%   { opacity: 0; transform: translateY(18px) scale(0.8); }
+    70%  { opacity: 1; transform: translateY(-3px) scale(1.05); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  .splash-wordmark {
+  @keyframes splashTaglineIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes splashBarFill {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
+
+  .splash-letter {
     opacity: 0;
-    animation: splashBlurIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: 0.15s;
+    display: inline-block;
+    animation: splashLetterIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    animation-delay: calc(0.35s + var(--i) * 0.06s);
   }
 
-  .splash-dots {
+  .splash-tagline {
     opacity: 0;
-    animation: splashDotsIn 0.4s ease forwards;
-    animation-delay: 0.8s;
+    animation: splashTaglineIn 0.4s ease forwards;
+    animation-delay: 0.85s;
+  }
+
+  .splash-bar-wrap {
+    opacity: 0;
+    animation: splashTaglineIn 0.3s ease forwards;
+    animation-delay: 0.9s;
+  }
+
+  .splash-bar-fill {
+    width: 0%;
+    animation: splashBarFill 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.95s;
   }
 
   /* ===== PAGE SAYA STEP TRANSITION ===== */
@@ -893,38 +921,24 @@
 
     .nav-app.active::after { display: none !important; }
 
-    /* ── FAB → full-width CTA di sidebar ── */
+    /* ── FAB → full-width CTA di sidebar (desktop) ── */
     #navFabWrapper {
       margin-top: 6px !important;
       order: 2 !important;
       width: 100% !important;
       flex-direction: column !important;
       align-items: stretch !important;
+      padding-bottom: 0 !important;
     }
 
-    #navFabWrapper > div {
-      width: 100% !important;
-      height: auto !important;
-      position: static !important;
-    }
-
-    /* Sembunyikan semua animasi pulse */
-    #navFabWrapper > div > div {
-      display: none !important;
-    }
-
-    /* Tombol utama Bayar IPL */
     #navFabBayarBtn {
       width: 100% !important;
-      height: 46px !important;
-      border-radius: 12px !important;
+      border-radius: 14px !important;
+      padding: 12px 16px !important;
       background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
       box-shadow: 0 4px 16px rgba(46,125,50,0.30) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
       gap: 8px !important;
-      position: static !important;
+      justify-content: center !important;
       transition: box-shadow 0.15s ease, transform 0.1s ease !important;
     }
 
@@ -933,21 +947,9 @@
       transform: translateY(-1px) !important;
     }
 
-    #navFabBayarBtn:active {
-      transform: translateY(0) !important;
-    }
-
+    #navFabBayarBtn:active { transform: translateY(0) !important; }
     #navFabBayarBtn svg { width: 18px !important; height: 18px !important; }
-
-    #navFabBayarBtn::after {
-      content: 'Bayar IPL';
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.1px;
-    }
-
-    #navFabWrapper > span { display: none !important; }
+    #navFabBayarBtn > span { animation: none !important; box-shadow: none !important; }
 
     /* ════════════════════════════════════════════
        HOME PAGE — full-screen content area
@@ -1290,34 +1292,7 @@
     }
   }
 
-  /* ===== FAB BAYAR ANIMATIONS ===== */
-  @keyframes haloPulse {
-    0%, 100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0.6;
-    }
-    50% {
-      transform: translate(-50%, -50%) scale(1.13);
-      opacity: 0;
-    }
-  }
-
-  @keyframes ringPulse {
-    0%, 100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 0.7;
-    }
-    50% {
-      transform: translate(-50%, -50%) scale(1.1);
-      opacity: 0;
-    }
-  }
-
-  @keyframes orbitSpin {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-
+  /* ===== FAB BAYAR ANIMATION — single clean glow ===== */
   /* ===== SOS BUTTON — static, no animation ===== */
   .security-btn {
     animation: none !important;
@@ -1356,3 +1331,14 @@
     height: 44px;
     font-size: 18px;
   }
+/* ── Fasum horizontal scroll ── */
+.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+.fasum-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.fasum-card:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
