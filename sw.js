@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jportal-v3';
+const CACHE_NAME = 'jportal-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
