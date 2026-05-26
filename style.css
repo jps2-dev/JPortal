@@ -232,10 +232,6 @@
       z-index: 9999;
     }
 
-    #paymentSuccessBanner {
-      z-index: 400;
-    }
-
   /* Success banner HARUS PALING ATAS */
   #paymentSuccessBanner {
     z-index: 400;
@@ -387,9 +383,7 @@
     100% { transform: translateX(0); }
   }
 
-  .shake {
-    animation: softShake 0.35s ease;
-  }
+  /* .shake — gunakan definisi tunggal di bawah */
   /* ===== SUBMIT BUTTON DISABLED STATE ===== */
   #submitBtn:disabled {
     background: #9ca3af !important;   /* abu Tailwind gray-400 */
@@ -565,10 +559,6 @@
     stroke: #43A047;
   }
 
-  .nav-app.active {
-    color: #43A047;
-  }
-
   /* DOT INDICATOR */
   .nav-app.active::after {
     content: "";
@@ -616,17 +606,6 @@
     color:#2E7D32;
   }
 
-  @keyframes shake {
-    0%{transform:translateX(0)}
-    25%{transform:translateX(-6px)}
-    50%{transform:translateX(6px)}
-    75%{transform:translateX(-6px)}
-    100%{transform:translateX(0)}
-  }
-
-  .shake{
-      animation:shake .35s;
-    }
 
     .animate-suggest{
     animation:fadeSuggest .18s ease;
@@ -662,7 +641,7 @@
     100% { transform: translateX(0); }
   }
 
-  .shake{
+  .shake {
     animation: shakeInput 0.35s ease;
   }
 
@@ -796,66 +775,275 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ===== DESKTOP SHELL ===== */
+  /* ============================================================
+     DESKTOP — Full-screen dashboard style (min-width: 768px)
+  ============================================================ */
   @media (min-width: 768px) {
+
+    /* ════════════════════════════════════════════
+       BODY & SHELL — Full-screen, no container box
+    ════════════════════════════════════════════ */
     body {
-      background: #E8EDE8;
+      background: #F0F2F0;
+      overflow: hidden;
     }
 
     #appShell {
-      max-width: 960px;
-      margin: 0 auto;
-      position: relative;
-      background: #F4F6F8;
-      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+      max-width: none;
+      width: 100%;
+      margin: 0;
+      background: transparent;
+      box-shadow: none;
+      min-height: 100vh;
+      position: static;
     }
 
-    /* Header dikunci ke dalam appShell */
+    /* Top header: HIDDEN, branding di sidebar */
     header {
-      position: absolute !important;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100% !important;
-      transform: none !important;
-      max-width: 100% !important;
+      display: none !important;
     }
 
-    /* Nav dikunci ke dalam appShell */
+    /* ════════════════════════════════════════════
+       SIDEBAR — Fixed, full-height, clean white
+    ════════════════════════════════════════════ */
     nav {
-      position: absolute !important;
+      position: fixed !important;
       left: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      right: auto !important;
+      width: 240px !important;
+      height: 100vh !important;
+      border-top: none !important;
+      border-right: 1px solid #E8EBE8 !important;
+      background: #FFFFFF !important;
+      box-shadow: 2px 0 16px rgba(0,0,0,0.04) !important;
+      padding: 0 !important;
+      overflow-y: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      z-index: 100 !important;
+    }
+
+    /* Brand area di atas sidebar */
+    nav::before {
+      content: '';
+      display: block;
+      height: 68px;
+      flex-shrink: 0;
+      background: #fff;
+      border-bottom: 1px solid #F0F2EF;
+    }
+
+    nav::after {
+      content: 'JPortal';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      font-size: 20px;
+      font-weight: 900;
+      color: #1B5E20;
+      letter-spacing: -0.6px;
+      pointer-events: none;
+    }
+
+    /* Nav inner wrapper → kolom */
+    nav > div {
+      flex-direction: column !important;
+      height: auto !important;
+      flex: 1 !important;
+      align-items: stretch !important;
+      justify-content: flex-start !important;
+      gap: 2px !important;
+      padding: 14px 14px 20px !important;
+    }
+
+    /* Nav items */
+    .nav-app {
+      flex-direction: row !important;
+      justify-content: flex-start !important;
+      gap: 12px !important;
+      padding: 10px 14px !important;
+      border-radius: 10px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      min-width: unset !important;
+      width: 100% !important;
+      color: #6B7280 !important;
+      background: transparent !important;
+      transition: background 0.12s ease, color 0.12s ease !important;
+    }
+
+    .nav-app:hover {
+      background: #F5F8F5 !important;
+      color: #166534 !important;
+    }
+
+    .nav-app span { font-size: 14px !important; font-weight: 500 !important; }
+    .nav-app svg  { width: 18px !important; height: 18px !important; flex-shrink: 0; }
+
+    .nav-app.active {
+      background: #DCFCE7 !important;
+      color: #166534 !important;
+      font-weight: 600 !important;
+    }
+
+    .nav-app.active::after { display: none !important; }
+
+    /* ── FAB → full-width CTA di sidebar ── */
+    #navFabWrapper {
+      margin-top: 6px !important;
+      order: 2 !important;
+      width: 100% !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+
+    #navFabWrapper > div {
+      width: 100% !important;
+      height: auto !important;
+      position: static !important;
+    }
+
+    /* Sembunyikan semua animasi pulse */
+    #navFabWrapper > div > div {
+      display: none !important;
+    }
+
+    /* Tombol utama Bayar IPL */
+    #navFabBayarBtn {
+      width: 100% !important;
+      height: 46px !important;
+      border-radius: 12px !important;
+      background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
+      box-shadow: 0 4px 16px rgba(46,125,50,0.30) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      position: static !important;
+      transition: box-shadow 0.15s ease, transform 0.1s ease !important;
+    }
+
+    #navFabBayarBtn:hover {
+      box-shadow: 0 6px 20px rgba(46,125,50,0.40) !important;
+      transform: translateY(-1px) !important;
+    }
+
+    #navFabBayarBtn:active {
+      transform: translateY(0) !important;
+    }
+
+    #navFabBayarBtn svg { width: 18px !important; height: 18px !important; }
+
+    #navFabBayarBtn::after {
+      content: 'Bayar IPL';
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.1px;
+    }
+
+    #navFabWrapper > span { display: none !important; }
+
+    /* ════════════════════════════════════════════
+       HOME PAGE — full-screen content area
+    ════════════════════════════════════════════ */
+    #homePage {
+      position: fixed !important;
+      top: 0 !important;
+      left: 240px !important;
       right: 0 !important;
       bottom: 0 !important;
-      width: 100% !important;
+      width: auto !important;
+      height: 100vh !important;
+      min-height: unset !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      background: #F0F2F0 !important;
+      padding: 32px 28px 48px !important;
       transform: none !important;
-      max-width: 100% !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     }
 
-    /* Security button dikunci ke dalam appShell */
-    #securityBtn {
-      position: fixed !important;
-      right: calc(50% - 480px + 16px) !important;
-      bottom: 96px !important;
-      left: auto !important;
-      transform: none !important;
+    /* Greeting */
+    #homeGreeting { font-size: 13px !important; }
+    #homeUsername  { font-size: 24px !important; font-weight: 800 !important; }
+
+    #homePage > .px-5.pt-3 {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      margin-bottom: 20px !important;
     }
 
-    /* Pages fixed — constrain ke appShell width */
+    /* ── 2-COLUMN GRID ── */
+    #homeGrid {
+      display: grid !important;
+      grid-template-columns: 1.1fr 0.9fr !important;
+      gap: 20px !important;
+      align-items: start !important;
+    }
+
+    /* Hapus margin-x pada card di dalam grid (pakai gap saja) */
+    #homeColLeft  > div,
+    #homeColRight > div {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+
+    /* Fasum grid 2-col */
+    #homeFasumList {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Card border-radius lebih modern */
+    #homePage .rounded-3xl { border-radius: 16px !important; }
+
+    /* Tunggakan card padding lebih lapang */
+    #homeTunggakanCard { padding: 24px !important; }
+
+    /* Quick actions icon lebih besar */
+    #homePage .grid.grid-cols-4 .w-14 {
+      width: 52px !important;
+      height: 52px !important;
+    }
+
+    /* ════════════════════════════════════════════
+       PAGES — shift kanan mengikuti sidebar
+    ════════════════════════════════════════════ */
     #dashboard,
     #pageSaya,
-    #explorePage,
-    #formMudik,
-    #formRenovasi,
-    #sheet {
-      left: 50% !important;
-      right: auto !important;
-      transform: translateX(-50%) !important;
-      width: 960px !important;
-      max-width: 960px !important;
-      min-width: 960px !important;
+    #explorePage {
+      position: fixed !important;
+      left: 240px !important;
+      right: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      width: calc(100vw - 240px) !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      transform: none !important;
+      overflow: hidden !important;
     }
 
-    /* Inner scroll area pages — full width dalam container */
+    /* Sheet (form bayar) — tetap full screen */
+    #sheet {
+      position: fixed !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      transform: none !important;
+    }
+
+    /* ── Semua internal flex/scroll area ── */
     #dashboard .flex-1,
     #pageSaya .flex-1,
     #explorePage .flex-1,
@@ -863,10 +1051,10 @@
     #formRenovasi .flex-1,
     #sheet .flex-1 {
       width: 100% !important;
-      max-width: 100% !important;
+      max-width: none !important;
     }
 
-    /* Header tiap page — full width dalam container */
+    /* ── Sticky headers di dalam page ── */
     #dashboard > div:first-child,
     #pageSaya > div > div:first-child,
     #explorePage > div:first-child,
@@ -874,14 +1062,14 @@
     #formRenovasi > div:first-child,
     #sheet > div:first-child {
       width: 100% !important;
-      max-width: 100% !important;
       left: 0 !important;
       right: 0 !important;
       transform: none !important;
     }
 
-    /* Semua fixed modals/overlays tetap full viewport */
-    #sheet,
+    /* ════════════════════════════════════════════
+       MODALS & OVERLAYS — always full viewport
+    ════════════════════════════════════════════ */
     #overlay,
     #confirmModal,
     #loginModal,
@@ -896,19 +1084,209 @@
     #adminBayarPicker,
     #contactModal,
     #splashScreen,
-    #dashboard,
-    #pageSaya,
-    #explorePage,
-    #formMudik,
-    #formRenovasi,
     #pedomanViewer,
     #securityOverlay,
     #stickyCTA {
       left: 0 !important;
       right: 0 !important;
-      transform: none !important;
       width: 100% !important;
-      max-width: 100% !important;
+      max-width: none !important;
+      transform: none !important;
+    }
+
+    /* SOS button */
+    #securityBtn {
+      position: fixed !important;
+      right: 20px !important;
+      bottom: 24px !important;
+      left: auto !important;
+      transform: none !important;
+    }
+
+    /* ════════════════════════════════════════════
+       MODAL CARDS — centered di desktop
+    ════════════════════════════════════════════ */
+
+    /* pageSaya → FULL PANEL (handled by main PAGES block above) */
+    #pageSaya {
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: #F0F2F0 !important;
+      z-index: 50 !important;
+    }
+
+    /* pageSaya.active — tetap full panel */
+    #pageSaya.active {
+      transform: none !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+
+    /* Sheet (Form Bayar IPL) → centered modal card */
+    #sheet {
+      position: fixed !important;
+      left: 50% !important;
+      top: 50% !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 560px !important;
+      max-width: 92vw !important;
+      height: auto !important;
+      max-height: 88vh !important;
+      border-radius: 20px !important;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.04) !important;
+      overflow: hidden !important;
+      z-index: 200 !important;
+      background: #F4F6F8 !important;
+      transform: translate(-50%, calc(-50% + 14px)) !important;
+      transition: opacity 0.22s ease, transform 0.22s ease !important;
+    }
+
+    body.ipl-form-open #sheet {
+      transform: translate(-50%, -50%) !important;
+    }
+
+    /* formMudik & formRenovasi → centered modal card */
+    #formMudik,
+    #formRenovasi {
+      position: fixed !important;
+      left: 50% !important;
+      top: 50% !important;
+      right: auto !important;
+      bottom: auto !important;
+      width: 520px !important;
+      max-width: 92vw !important;
+      height: auto !important;
+      max-height: 88vh !important;
+      min-height: 0 !important;
+      border-radius: 20px !important;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.04) !important;
+      overflow: hidden !important;
+      z-index: 200 !important;
+      background: #ffffff !important;
+      transform: translate(-50%, -50%) !important;
+    }
+
+    /* ── Bottom-sheet modals → centered on desktop ── */
+    /* infoCRUDModal & fasumCRUDModal */
+    #infoCRUDModal,
+    #fasumCRUDModal {
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    #infoCRUDModal > div,
+    #fasumCRUDModal > div {
+      border-radius: 20px !important;
+      width: 520px !important;
+      max-width: 92vw !important;
+      margin: 0 auto !important;
+    }
+
+    /* ── Bottom-sheet modals → centered cards on desktop ── */
+    #feedbackModal,
+    #aboutModal,
+    #contactModal,
+    #securityOverlay,
+    #tunggakanModal,
+    #adminBayarPicker {
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #feedbackModal > div,
+    #aboutModal > div,
+    #contactModal > div,
+    #securityOverlay > div,
+    #tunggakanModal > div,
+    #adminBayarPicker > div {
+      border-radius: 20px !important;
+      width: 460px !important;
+      max-width: 92vw !important;
+      max-height: 88vh !important;
+      overflow-y: auto !important;
+    }
+    /* Hide drag handles on desktop */
+    #feedbackModal .w-10.h-1,
+    #contactModal .w-10.h-1,
+    #aboutModal .w-10.h-1,
+    #securityOverlay .w-10.h-1,
+    #adminBayarPicker .w-10.h-1 {
+      display: none !important;
+    }
+
+    /* ── adminBayarPicker & tunggakanModal → centered on desktop ── */
+    #adminBayarPicker,
+    #tunggakanModal {
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #adminBayarPicker > div {
+      border-radius: 20px !important;
+      width: 420px !important;
+      max-width: 92vw !important;
+    }
+    #tunggakanModal > div {
+      border-radius: 20px !important;
+      width: 400px !important;
+      max-width: 92vw !important;
+    }
+
+    /* ── pedomanViewer → constrained inframe modal on desktop ── */
+    #pedomanViewer {
+      padding: 6vh 20vw !important;
+      flex-direction: column !important;
+    }
+    #pedomanViewer > div:first-child {
+      border-radius: 16px 16px 0 0 !important;
+      flex-shrink: 0 !important;
+    }
+    #pedomanViewer > div:last-child {
+      border-radius: 0 0 16px 16px !important;
+      overflow: hidden !important;
+    }
+
+    /* Back arrow hidden on desktop — X button shown via HTML md:flex */
+
+    /* Overlay di desktop: blur + gelap */
+    #overlay {
+      z-index: 195 !important;
+      backdrop-filter: blur(3px) !important;
+      -webkit-backdrop-filter: blur(3px) !important;
+      background: rgba(0,0,0,0.45) !important;
+    }
+
+    /* ════════════════════════════════════════════
+       UI AUDIT FIXES — Desktop polish
+    ════════════════════════════════════════════ */
+
+    /* formMudik/Renovasi: ensure inner scroll works */
+    #formMudik .flex-1,
+    #formRenovasi .flex-1 {
+      overflow-y: auto !important;
+      max-height: calc(88vh - 72px) !important;
+    }
+
+    /* formMudik/Renovasi: modal backdrop */
+    #formMudik,
+    #formRenovasi {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    /* Backdrop blur for all modal overlays */
+    #feedbackModal,
+    #aboutModal,
+    #contactModal,
+    #securityOverlay,
+    #tunggakanModal,
+    #adminBayarPicker,
+    #createPINModal,
+    #logoutConfirmModal,
+    #loginRequiredModal,
+    #infoArtikelModal {
+      backdrop-filter: blur(2px) !important;
+      -webkit-backdrop-filter: blur(2px) !important;
     }
   }
 

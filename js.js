@@ -375,11 +375,6 @@ function gasPost_(action, body) {
       }
     }
 
-    function backToEmailStep() {
-      document.getElementById('sayaStepOTP')?.classList.add('hidden');
-      document.getElementById('sayaStepEmail')?.classList.remove('hidden');
-    }
-
     // ===== DASHBOARD CACHE STATE =====
     let dashboardCache = null;
     let dashboardPendingCache = [];
@@ -1686,6 +1681,14 @@ function gasPost_(action, body) {
       multiDecisionMode = null;
       residentSuggestion = null;
 
+      // For admin: show picker FIRST, sheet revealed after selection
+      if (currentUser && currentUser.role === 'admin') {
+        const identitySection2 = document.getElementById('identitySection');
+        if (identitySection2) identitySection2.classList.remove('hidden');
+        openAdminBayarPicker();
+        return;
+      }
+
       const sheet = document.getElementById('sheet');
       const overlay = document.getElementById('overlay');
 
@@ -1737,12 +1740,7 @@ function gasPost_(action, body) {
       /* ================= LOGIN MODE HANDLING ================= */
       const identitySection = document.getElementById('identitySection');
 
-      if (currentUser && currentUser.role === 'admin') {
-        // Admin → tampilkan picker dulu
-        if (identitySection) identitySection.classList.remove('hidden');
-        openAdminBayarPicker();
-        return;
-      }
+      // (admin handled earlier — picker shown first)
 
       if (currentUser && currentUser.role !== 'admin') {
         // Warga biasa → auto-fill & hide identity
@@ -1817,56 +1815,6 @@ function gasPost_(action, body) {
       document.body.style.overflow = '';
     }
 
-    function validateAndSubmit() {
-      let valid = true;
-
-      // reset error
-      document.querySelectorAll('.error').forEach(el => el.remove());
-      document.querySelectorAll('.app-input').forEach(el =>
-        el.classList.remove('border-red-500')
-      );
-
-      function error(el, msg) {
-        valid = false;
-        el.classList.add('border-red-500');
-
-        const e = document.createElement('div');
-        e.className = 'error text-xs text-red-500 mt-1';
-        e.innerText = msg;
-        el.after(e);
-      }
-
-      const required = [
-        ['nama', 'Nama wajib diisi'],
-        ['blok', 'Nomor blok wajib diisi'],
-        ['hp', 'Nomor HP wajib diisi'],
-        ['email', 'Email wajib diisi'],
-        ['tanggal', 'Tanggal bayar wajib diisi'],
-        ['tahun', 'Tahun wajib dipilih'],
-        ['nominal', 'Jumlah pembayaran wajib diisi'],
-        ['rekening', 'Nama pemilik rekening wajib diisi']
-      ];
-
-      required.forEach(([id, msg]) => {
-        const el = document.getElementById(id);
-        if (!el || !el.value.trim()) error(el, msg);
-      });
-
-      if (!document.querySelector('input[name="hunian"]:checked')) {
-        alert('Status tinggal wajib dipilih');
-        valid = false;
-      }
-
-      if (!document.querySelectorAll('.chip.active').length) {
-        alert('Minimal pilih satu bulan pembayaran');
-        valid = false;
-      }
-
-      if (!valid) return;
-
-      submitForm(); // lanjut ke Apps Script
-    }
-
     const uploadInput = document.getElementById('buktiUpload');
     if (uploadInput) {
       uploadInput.addEventListener('change', e => {
@@ -1882,15 +1830,6 @@ function gasPost_(action, body) {
     const pdfPreview = document.getElementById('pdfPreview');
     const pdfName = document.getElementById('pdfName');
 
-    function setActive(menu) {
-      document.querySelectorAll('.nav-item').forEach(i => {
-        i.classList.remove('active');
-      });
-
-      event.currentTarget.classList.add('active');
-    }
-
-
     function setActiveNav(el) {
       document.querySelectorAll('.nav-app')
         .forEach(n => n.classList.remove('active'));
@@ -1903,25 +1842,6 @@ function gasPost_(action, body) {
 
     function closeComingSoon() {
       document.getElementById('comingSoon').classList.add('hidden');
-    }
-
-    /* ================= GLOBAL SUBMIT ================= */
-    const scrollEl = document.getElementById('sheetScroll');
-    const submitCTA = document.getElementById('submitCTA');
-
-    if (scrollEl && submitCTA) {
-      scrollEl.addEventListener('scroll', () => {
-        const threshold = 80; // jarak sebelum mentok bawah
-        const isNearBottom =
-          scrollEl.scrollTop + scrollEl.clientHeight >=
-          scrollEl.scrollHeight - threshold;
-
-        if (isNearBottom) {
-          submitCTA.classList.remove('hidden');
-        } else {
-          submitCTA.classList.add('hidden');
-        }
-      });
     }
 
     function disableSubmit() {
@@ -2627,13 +2547,12 @@ function gasPost_(action, body) {
       // ===== FILTER DATE =====
       document.querySelectorAll('.filter-date-chip').forEach(btn => {
         btn.addEventListener('click', function() {
-          const text = this.innerText.toLowerCase();
-          if (text !== 'custom') {
+          const filter = this.dataset.filter || this.innerText.toLowerCase();
+          if (filter !== 'custom') {
             document.querySelectorAll('.filter-date-chip')
               .forEach(c => c.classList.remove('active'));
             this.classList.add('active');
-            activeTimeFilter = text;
-            // 🔥 INI RESET CUSTOM
+            activeTimeFilter = filter;
             customDateRange = null;
             customPanel.classList.add('hidden');
             applyFilters();
@@ -2660,20 +2579,6 @@ function gasPost_(action, body) {
             this.innerText.includes('200') ? 200000 : 175000;
           applyFilters();
         });
-      });
-
-      const customDateInput =
-        document.getElementById('customDateInput');
-        customDateInput?.addEventListener('change', function() {
-        if (!this.value) return;
-        customDateRange = {
-          start: this.value,
-          end: this.value
-        };
-        // reset chip active
-        document.querySelectorAll('.filter-date-chip')
-          .forEach(c => c.classList.remove('active'));
-        applyFilters();
       });
 
       const startInput  = document.getElementById('startDateInput');
@@ -2982,6 +2887,29 @@ function gasPost_(action, body) {
     // 🔥 WAJIB: hitung ulang count + render sesuai filter & role
     applyFilters();
     updateDashboardTimestamp();
+    updateDashboardScorecards();
+  }
+
+  function updateDashboardScorecards() {
+    var isAdmin = currentUser && currentUser.role === 'admin';
+    var sc = document.getElementById('dashboardScorecards');
+    if (!sc || !isAdmin) return;
+
+    var pending   = dashboardPendingCache   || [];
+    var confirmed = dashboardConfirmedCache || [];
+
+    var pendingAmt   = pending.reduce(function(s, i)   { return s + Number(i.nominal || 0); }, 0);
+    var confirmedAmt = confirmed.reduce(function(s, i) { return s + Number(i.nominal || 0); }, 0);
+    var totalAmt     = confirmedAmt; // total terkumpul = confirmed
+
+    function fmt(n) { return 'Rp ' + n.toLocaleString('id-ID'); }
+
+    var el = function(id) { return document.getElementById(id); };
+    if (el('scPendingCount'))   el('scPendingCount').textContent   = pending.length;
+    if (el('scPendingAmount'))  el('scPendingAmount').textContent  = fmt(pendingAmt);
+    if (el('scConfirmedCount')) el('scConfirmedCount').textContent = confirmed.length;
+    if (el('scConfirmedAmount'))el('scConfirmedAmount').textContent= fmt(confirmedAmt);
+    if (el('scTotalAmount'))    el('scTotalAmount').textContent    = fmt(totalAmt);
   }
 
   function closeDashboard() {
@@ -3690,48 +3618,6 @@ function gasPost_(action, body) {
 
     // Auto-submit saat 6 digit penuh
     if (otp.length === 6) {
-      // DEV BYPASS: ketik 000000 untuk skip OTP
-      if (otp === '000000') {
-        var devEmail = document.getElementById('sayaEmailInput')
-          ? document.getElementById('sayaEmailInput').value.trim()
-          : '';
-        gasGet_('getUserByEmail', { email: devEmail })
-          .then(function(res) {
-            if (!res || !res.success) {
-              showToast('Email tidak ditemukan', 'error');
-              return;
-            }
-            currentUser = res.user;
-            saveSession(res.user);
-            updateHeaderAuthUI();
-            loadHomeData();
-            gasGet_('getCurrentUserDataWarga', { email: res.user.email })
-              .then(function(dataRes) {
-                if (dataRes && dataRes.success) currentUser.wargaData = dataRes.data || [];
-              });
-            document.getElementById('sayaStepOTP').classList.add('hidden');
-            document.getElementById('sayaProfileName').innerText = res.user.fullName || 'User';
-            document.getElementById('sayaProfileEmail').innerText = res.user.email;
-            document.getElementById('sayaLoggedInView').classList.remove('hidden');
-            document.body.classList.remove('saya-open');
-            gasGet_('getCurrentUserDataWarga', { email: res.user.email })
-              .then(function(wRes) {
-                if (!wRes || !wRes.success) return;
-                var namaEl  = document.getElementById('sayaNamaInput');
-                var hpEl    = document.getElementById('sayaHpInput');
-                var emailEl = document.getElementById('sayaEmailEditInput');
-                if (namaEl)  namaEl.value  = wRes.data[0].nama  || '';
-                if (hpEl)    hpEl.value    = wRes.data[0].noHp  || '';
-                if (emailEl) emailEl.value = wRes.data[0].email || '';
-                showToast('DEV: Login bypass aktif', 'success');
-              });
-          })
-          .catch(function() {
-            showToast('Gagal bypass login', 'error');
-          });
-        return;
-      }
-
       setTimeout(function() {
         verifyOTPSaya();
       }, 120);
@@ -3993,11 +3879,30 @@ function gasPost_(action, body) {
     if (homePage) homePage.scrollTop = 0;
   }
 
+  function cancelSayaEdit() {
+    var namaEl  = document.getElementById('sayaNamaInput');
+    var hpEl    = document.getElementById('sayaHpInput');
+    var editBtn = document.getElementById('sayaEditBtn');
+    var saveBtn = document.getElementById('sayaSaveBtn');
+    var cancelBtn = document.getElementById('sayaCancelBtn');
+    // Restore original values from data attributes
+    if (namaEl) { namaEl.value = namaEl.dataset.original || namaEl.value; namaEl.readOnly = true; namaEl.style.borderBottom = ''; namaEl.style.paddingBottom = ''; }
+    if (hpEl)   { hpEl.value  = hpEl.dataset.original  || hpEl.value;   hpEl.readOnly  = true; hpEl.style.borderBottom  = ''; hpEl.style.paddingBottom  = ''; }
+    if (editBtn)   editBtn.classList.remove('hidden');
+    if (saveBtn)   saveBtn.classList.add('hidden');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+  }
+
   function enableSayaEdit() {
     var namaEl  = document.getElementById('sayaNamaInput');
     var hpEl    = document.getElementById('sayaHpInput');
     var editBtn = document.getElementById('sayaEditBtn');
     var saveBtn = document.getElementById('sayaSaveBtn');
+    var cancelBtn = document.getElementById('sayaCancelBtn');
+
+    // Save originals for cancel
+    if (namaEl) namaEl.dataset.original = namaEl.value;
+    if (hpEl)   hpEl.dataset.original   = hpEl.value;
 
     // Hanya nama dan HP yang editable
     [namaEl, hpEl].forEach(function(el) {
@@ -4010,8 +3915,9 @@ function gasPost_(action, body) {
       el.style.paddingBottom = '2px';
     });
 
-    if (editBtn) editBtn.classList.add('hidden');
-    if (saveBtn) saveBtn.classList.remove('hidden');
+    if (editBtn)   editBtn.classList.add('hidden');
+    if (saveBtn)   saveBtn.classList.remove('hidden');
+    if (cancelBtn) cancelBtn.classList.remove('hidden');
 
     // Focus ke nama dulu
     if (namaEl) setTimeout(function(){ namaEl.focus(); namaEl.select(); }, 100);
@@ -4063,6 +3969,7 @@ function gasPost_(action, body) {
           });
           document.getElementById('sayaEditBtn')?.classList.remove('hidden');
           document.getElementById('sayaSaveBtn')?.classList.add('hidden');
+          document.getElementById('sayaCancelBtn')?.classList.add('hidden');
           btn.disabled = false;
           btn.innerHTML = 'Simpan';
           showToast('Data berhasil diperbarui','success');
@@ -5092,18 +4999,12 @@ function renderStars() {
 function submitFeedback() {
 
   if (!selectedRating) {
-    showToast('Silakan pilih rating terlebih dahulu', 'success');
+    showToast('Silakan pilih rating terlebih dahulu', 'warning');
     return;
   }
 
   if (!currentUser || !currentUser.email) {
     showToast('Session tidak ditemukan', 'error');
-    return;
-  }
-
-
-  if (!currentUser || !currentUser.email) {
-    showToast('Session tidak ditemukan', 'success');
     return;
   }
 
@@ -5167,12 +5068,6 @@ function switchPage(targetId){
     }
 
   });
-}
-
-function openRekeningInfo() {
-  const el = document.getElementById('rekeningInfoSection');
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function updateHomeGreeting() {
@@ -6027,6 +5922,17 @@ function cancelAdminBayarPicker() {
 function adminPilihSendiri() {
   closeAdminBayarPicker();
 
+  // Reveal sheet DOM now (was deferred until after picker selection)
+  document.body.classList.add('ipl-form-open');
+  var _s = document.getElementById('sheet');
+  var _o = document.getElementById('overlay');
+  if (_s) { _s.scrollTop = 0; _s.classList.remove('translate-y-[120%]'); }
+  if (_o) _o.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  var _ti = document.getElementById('tanggal');
+  if (_ti && !_ti.value) _ti.value = formatDateISO(new Date());
+  if (typeof _updateTanggalUI_ === 'function') _updateTanggalUI_();
+
   if (!Array.isArray(currentUser.wargaData) || !currentUser.wargaData.length) {
     showToast('Data warga belum siap, coba lagi', 'warning');
     return;
@@ -6088,6 +5994,17 @@ function adminPilihSendiri() {
 
 function adminPilihWarga() {
   closeAdminBayarPicker();
+
+  // Reveal sheet DOM now (was deferred until after picker selection)
+  document.body.classList.add('ipl-form-open');
+  var _s = document.getElementById('sheet');
+  var _o = document.getElementById('overlay');
+  if (_s) { _s.scrollTop = 0; _s.classList.remove('translate-y-[120%]'); }
+  if (_o) _o.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  var _ti = document.getElementById('tanggal');
+  if (_ti && !_ti.value) _ti.value = formatDateISO(new Date());
+  if (typeof _updateTanggalUI_ === 'function') _updateTanggalUI_();
 
   // Reset semua identity fields — pastikan tidak ada sisa lock dari fillIdentityFromWargaData_
   var blokEl  = document.getElementById('blok');
@@ -6304,7 +6221,7 @@ function renderContactList(res, listEl) {
   var allData = res.data;
   function buildContactHTML(data) {
     return data.map(function(c) {
-      var hp = String(c.noHp || '').replace(/\D/g, '');
+      var hp = String(c.noHp || '').replace(/\D/g, '').replace(/^0/, '62');
       return '<div class="contact-item flex items-center justify-between py-2.5 border-b border-gray-50">' +
         '<div>' +
           '<p class="text-sm font-semibold text-gray-900">' + c.nama + '</p>' +
@@ -6916,6 +6833,9 @@ function openFormMudik() {
   el.style.opacity = '1';
   el.style.pointerEvents = 'auto';
   history.pushState({ formMudik: true }, '');
+  // Block sidebar navigation while form is open
+  var ov = document.getElementById('overlay');
+  if (ov) { ov.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
 }
 
 function mudikEnableEdit() {
@@ -7011,6 +6931,9 @@ function openFormRenovasi() {
   el.style.opacity = '1';
   el.style.pointerEvents = 'auto';
   history.pushState({ formRenovasi: true }, '');
+  // Block sidebar navigation while form is open
+  var ov = document.getElementById('overlay');
+  if (ov) { ov.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
 }
 
 function renovEnableEdit() {
@@ -7057,6 +6980,9 @@ function closeFormMudik() {
   if (!el) return;
   el.style.opacity = '0';
   el.style.pointerEvents = 'none';
+  var ov = document.getElementById('overlay');
+  if (ov) { ov.classList.add('hidden'); document.body.style.overflow = ''; }
+  if (history.state && history.state.formMudik) history.back();
 }
 
 function updateMudikSubmitBtn() {
@@ -7101,6 +7027,9 @@ function closeFormRenovasi() {
   if (!el) return;
   el.style.opacity = '0';
   el.style.pointerEvents = 'none';
+  var ov = document.getElementById('overlay');
+  if (ov) { ov.classList.add('hidden'); document.body.style.overflow = ''; }
+  if (history.state && history.state.formRenovasi) history.back();
 }
 
 function updateRenovSubmitBtn() {

@@ -30,24 +30,7 @@
 <meta name="apple-mobile-web-app-title" content="JPortal">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
-  <style>
-  @media (min-width: 768px) {
-    #dashboard,
-    #pageSaya,
-    #explorePage,
-    #formMudik,
-    #formRenovasi,
-    #sheet {
-      left: 50% !important;
-      right: auto !important;
-      -webkit-transform: translateX(-50%) !important;
-      transform: translateX(-50%) !important;
-      width: 960px !important;
-      max-width: 960px !important;
-      min-width: 0 !important;
-    }
-  }
-  </style>
+
 </head>
 
 <body class="bg-softbg text-gray-900 md:bg-softbg">
@@ -110,6 +93,12 @@
     <h1 class="text-xl font-bold text-gray-900 mt-0" id="homeUsername">JPortal</h1>
   </div>
 
+  <!-- DESKTOP 2-COL GRID WRAPPER -->
+  <div id="homeGrid">
+
+  <!-- ===== KOLOM KIRI ===== -->
+  <div id="homeColLeft">
+
   <!-- TUNGGAKAN CARD -->
   <div class="mx-5 mb-4">
     <div id="homeTunggakanCard"
@@ -154,7 +143,7 @@
 
   <!-- QUICK ACTION -->
   <div class="px-5 mb-5">
-    <div class="grid grid-cols-4 gap-2 px-1">
+    <div class="grid grid-cols-4 md:grid-cols-7 gap-2 px-1">
 
       <!-- Bayar IPL — PRIMARY CTA -->
       <button onclick="openSheet()"
@@ -208,10 +197,47 @@
         <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Kontak</span>
       </button>
 
+      <!-- Konfirmasi Mudik -->
+      <button onclick="openFormMudik()"
+              class="flex flex-col items-center gap-2.5 py-3 active:scale-95 transition">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center"
+             style="background:#EFF6FF;">
+          <svg class="w-6 h-6" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Mudik</span>
+      </button>
+
+      <!-- Konfirmasi Renovasi -->
+      <button onclick="openFormRenovasi()"
+              class="flex flex-col items-center gap-2.5 py-3 active:scale-95 transition">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center"
+             style="background:#FFF7ED;">
+          <svg class="w-6 h-6" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Renovasi</span>
+      </button>
+
+      <!-- Pedoman -->
+      <button onclick="openExplore()"
+              class="flex flex-col items-center gap-2.5 py-3 active:scale-95 transition">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center"
+             style="background:#F0FDF4;">
+          <svg class="w-6 h-6" fill="none" stroke="#16A34A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Pedoman</span>
+      </button>
+
     </div>
   </div>
 
-  <!-- KAS IPL -->
+  <!-- KAS IPL — kolom kiri -->
   <div class="mx-5 mb-5">
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
 
@@ -313,7 +339,7 @@
     </div>
   </div>
 
-  <!-- INFO REKENING -->
+  <!-- INFO REKENING — masih kolom kiri -->
   <div class="mx-5 mb-8" id="rekeningInfoSection">
     <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
 
@@ -406,6 +432,11 @@
     </div>
 </div>
 
+  </div><!-- /homeColLeft -->
+
+  <!-- ===== KOLOM KANAN ===== -->
+  <div id="homeColRight">
+
   <!-- INFO CLUSTER CAROUSEL -->
   <div class="mx-5 mb-5 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
 
@@ -449,7 +480,8 @@
       <div class="h-20 rounded-2xl bg-gray-100 animate-pulse"></div>
     </div>
 
-  </div>
+  </div><!-- /homeColRight -->
+  </div><!-- /homeGrid -->
 
 </section>
 
@@ -494,7 +526,7 @@
     </button>
 
     <!-- FAB BAYAR IPL — CENTER DOMINANT -->
-    <div class="flex flex-col items-center" style="margin-top:-24px;">
+    <div id="navFabWrapper" class="flex flex-col items-center" style="margin-top:-24px;">
 
       <!-- WRAPPER: anchor semua animasi ke button -->
       <div class="relative flex items-center justify-center"
@@ -534,7 +566,7 @@
         </div>
 
         <!-- BUTTON UTAMA -->
-        <button onclick="openSheet()"
+        <button id="navFabBayarBtn" onclick="openSheet()"
                 class="relative w-[68px] h-[68px] rounded-full flex items-center justify-center active:scale-95 transition-transform"
                 style="background:linear-gradient(135deg, #4CAF50, #2E7D32);
                        box-shadow:0 6px 20px rgba(67,160,71,0.55), 0 2px 6px rgba(0,0,0,0.15);
@@ -583,24 +615,34 @@
   <div class="sticky top-0 z-20
               bg-softbg
               px-5 py-4
-              flex items-center gap-3
+              flex items-center justify-between gap-3
               border-b border-gray-200">
 
-    <!-- BACK BUTTON -->
-    <button onclick="closeSheet()"
-            class="text-gray-700 text-xl
-                  active:scale-95 transition">
-      ←
-    </button>
+    <div class="flex items-center gap-3">
+      <!-- BACK BUTTON (mobile only) -->
+      <button id="btnBackSheet" onclick="closeSheet()"
+              class="text-gray-700 text-xl active:scale-95 transition md:hidden">
+        ←
+      </button>
 
-    <div>
-      <h2 class="text-base font-semibold text-gray-900">
-        Form Pembayaran IPL
-      </h2>
-      <p class="text-xs text-gray-500">
-        Data digunakan untuk verifikasi pembayaran
-      </p>
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">
+          Form Pembayaran IPL
+        </h2>
+        <p class="text-xs text-gray-500">
+          Data digunakan untuk verifikasi pembayaran
+        </p>
+      </div>
     </div>
+
+    <!-- CLOSE BUTTON (desktop) -->
+    <button onclick="closeSheet()"
+            class="hidden md:flex w-8 h-8 rounded-full bg-gray-100 items-center justify-center
+                   text-gray-500 hover:bg-gray-200 active:scale-95 transition flex-shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <!-- ===== SCROLLABLE CONTENT ===== -->
@@ -989,8 +1031,8 @@
 
     <!-- INFORMASI TRANSFER (HIDDEN - SIMPLIFIED UI) -->
     <div class="hidden">
-      <input id="bank" value="" />
-      <input id="rekening" value="" />
+      <input id="bank" value="BCA" />
+      <input id="rekening" value="7305014010" />
     </div>
 
     <!-- KETERANGAN -->
@@ -1177,8 +1219,10 @@
 
   <!-- ===== TUNGGAKAN DETAIL MODAL ===== -->
   <div id="tunggakanModal"
+       onclick="closeTunggakanModal()"
        class="fixed inset-0 z-[600] hidden bg-black/40 flex items-end justify-center">
-    <div class="bg-white w-full max-w-md rounded-t-3xl shadow-2xl overflow-hidden pb-safe">
+    <div onclick="event.stopPropagation()"
+         class="bg-white w-full max-w-md rounded-t-3xl shadow-2xl overflow-hidden pb-safe">
 
     <!-- HANDLE -->
     <div class="flex justify-center pt-3 pb-1">
@@ -1227,8 +1271,10 @@
 
   <!-- ===== INFO ARTIKEL MODAL ===== -->
   <div id="infoArtikelModal"
+      onclick="closeInfoArtikelModal()"
       class="fixed inset-0 z-[600] hidden bg-black/40 flex items-center justify-center">
-    <div class="bg-white w-[92%] max-w-sm rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+    <div onclick="event.stopPropagation()"
+         class="bg-white w-[92%] max-w-sm rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
 
       <div class="px-5 py-4 border-b border-gray-100 flex items-start justify-between">
         <div class="flex-1 pr-3">
@@ -1258,8 +1304,10 @@
 
   <!-- ===== ADMIN BAYAR PICKER ===== -->
 <div id="adminBayarPicker"
+     onclick="cancelAdminBayarPicker()"
      class="fixed inset-0 z-[700] hidden bg-black/40 flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-3xl p-6 space-y-3 pb-safe">
+  <div onclick="event.stopPropagation()"
+       class="bg-white w-full max-w-md rounded-t-3xl p-6 space-y-3 pb-safe">
 
     <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
 
@@ -1309,15 +1357,24 @@
 
 <!-- ===== CONTACT CENTER MODAL ===== -->
 <div id="contactModal"
+     onclick="closeContactModal()"
      class="fixed inset-0 z-[700] hidden bg-black/40 flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-3xl pb-safe flex flex-col"
+  <div onclick="event.stopPropagation()"
+       class="bg-white w-full max-w-md rounded-t-3xl pb-safe flex flex-col"
        style="max-height: 80vh;">
 
     <!-- FREEZE HEADER -->
-    <div class="flex-shrink-0 px-5 pt-5 pb-3">
-      <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-      <p class="text-base font-bold text-gray-900">Hubungi Pengurus</p>
-      <p class="text-xs text-gray-400 mt-0.5">Jade Park Serpong 2</p>
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 flex items-start justify-between">
+      <div>
+        <p class="text-base font-bold text-gray-900">Hubungi Pengurus</p>
+        <p class="text-xs text-gray-400 mt-0.5">Jade Park Serpong 2</p>
+      </div>
+      <button onclick="closeContactModal()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
 
     <!-- FREEZE SEARCH -->
@@ -1337,14 +1394,6 @@
 
     <!-- SCROLLABLE LIST -->
     <div id="contactList" class="flex-1 overflow-y-auto px-5 pb-3">
-    </div>
-
-    <!-- FREEZE FOOTER -->
-    <div class="flex-shrink-0 px-5 pb-6 pt-2 border-t border-gray-50">
-      <button onclick="closeContactModal()"
-              class="w-full py-3 text-sm text-gray-400 font-medium">
-        Tutup
-      </button>
     </div>
 
   </div>
@@ -1923,6 +1972,33 @@
     </button>
   </div>
 
+  <!-- ===== DESKTOP SCORECARDS (admin only, hidden on mobile) ===== -->
+  <div id="dashboardScorecards"
+       class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 py-4 bg-softbg border-b border-gray-100 flex-shrink-0">
+
+    <!-- Card 1: Pending -->
+    <div class="bg-white rounded-2xl px-5 py-4 border border-yellow-100 shadow-sm">
+      <p class="text-[11px] font-semibold text-yellow-600 uppercase tracking-widest mb-1">Menunggu Konfirmasi</p>
+      <p id="scPendingCount" class="text-2xl font-black text-gray-900">—</p>
+      <p id="scPendingAmount" class="text-xs text-gray-400 mt-0.5 font-medium">Rp —</p>
+    </div>
+
+    <!-- Card 2: Confirmed -->
+    <div class="bg-white rounded-2xl px-5 py-4 border border-green-100 shadow-sm">
+      <p class="text-[11px] font-semibold text-green-600 uppercase tracking-widest mb-1">Sudah Dikonfirmasi</p>
+      <p id="scConfirmedCount" class="text-2xl font-black text-gray-900">—</p>
+      <p id="scConfirmedAmount" class="text-xs text-gray-400 mt-0.5 font-medium">Rp —</p>
+    </div>
+
+    <!-- Card 3: Total Revenue -->
+    <div class="bg-white rounded-2xl px-5 py-4 border border-blue-100 shadow-sm">
+      <p class="text-[11px] font-semibold text-blue-600 uppercase tracking-widest mb-1">Total Terkumpul</p>
+      <p id="scTotalAmount" class="text-2xl font-black text-gray-900">—</p>
+      <p class="text-xs text-gray-400 mt-0.5 font-medium">dari data yang tampil</p>
+    </div>
+
+  </div>
+
   <!-- ===== FREEZE AREA ===== -->
   <div class="px-5 pt-3 pb-2 space-y-3 bg-softbg/95 backdrop-blur">
 
@@ -1985,12 +2061,12 @@
         <option value="Nov">November</option>
         <option value="Des">Desember</option>
       </select>
-      <button class="filter-date-chip active">All</button>
-      <button class="filter-date-chip">Today</button>
-      <button class="filter-date-chip">Yesterday</button>
-      <button class="filter-date-chip">This Week</button>
-      <button class="filter-date-chip">This Month</button>
-      <button id="customFilterBtn" class="filter-date-chip">Custom</button>
+      <button class="filter-date-chip active" data-filter="all">Semua</button>
+      <button class="filter-date-chip" data-filter="today">Hari Ini</button>
+      <button class="filter-date-chip" data-filter="yesterday">Kemarin</button>
+      <button class="filter-date-chip" data-filter="this week">Minggu Ini</button>
+      <button class="filter-date-chip" data-filter="this month">Bulan Ini</button>
+      <button id="customFilterBtn" class="filter-date-chip" data-filter="custom">Kustom</button>
     </div>
 
     <!-- CUSTOM RANGE PANEL -->
@@ -2519,6 +2595,13 @@
             </svg>
             Ubah Data
           </button>
+          <button id="sayaCancelBtn"
+                  onclick="cancelSayaEdit()"
+                  class="hidden flex items-center gap-1.5 py-2 px-4 rounded-xl
+                         bg-gray-100 text-gray-600 text-xs font-semibold
+                         active:scale-95 transition ml-2">
+            Batal
+          </button>
           <button id="sayaSaveBtn"
                   onclick="saveSayaData()"
                   class="hidden flex items-center gap-1.5 py-2 px-4 rounded-xl
@@ -2820,12 +2903,20 @@
     style="transition: opacity 0.22s ease;">
 
   <!-- HEADER -->
-  <div class="sticky top-0 z-20 bg-white px-5 py-4 flex items-center gap-3 border-b border-gray-100">
-    <button onclick="closeFormMudik()" class="text-gray-700 text-xl active:scale-95 transition">←</button>
-    <div>
-      <h2 class="text-base font-semibold text-gray-900">Konfirmasi Mudik</h2>
-      <p class="text-xs text-gray-500">Informasikan kepada pengurus</p>
+  <div class="sticky top-0 z-20 bg-white px-5 py-4 flex items-center justify-between gap-3 border-b border-gray-100">
+    <div class="flex items-center gap-3">
+      <button id="btnBackMudik" onclick="closeFormMudik()" class="md:hidden text-gray-700 text-xl active:scale-95 transition">←</button>
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">Konfirmasi Mudik</h2>
+        <p class="text-xs text-gray-500">Informasikan kepada pengurus</p>
+      </div>
     </div>
+    <button onclick="closeFormMudik()"
+            class="hidden md:flex w-8 h-8 rounded-full bg-gray-100 items-center justify-center text-gray-500 hover:bg-gray-200 active:scale-95 transition flex-shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <!-- SCROLL -->
@@ -2975,12 +3066,20 @@
     style="transition: opacity 0.22s ease;">
 
   <!-- HEADER -->
-  <div class="sticky top-0 z-20 bg-white px-5 py-4 flex items-center gap-3 border-b border-gray-100">
-    <button onclick="closeFormRenovasi()" class="text-gray-700 text-xl active:scale-95 transition">←</button>
-    <div>
-      <h2 class="text-base font-semibold text-gray-900">Konfirmasi Renovasi</h2>
-      <p class="text-xs text-gray-500">Daftarkan rencana renovasi rumah Anda</p>
+  <div class="sticky top-0 z-20 bg-white px-5 py-4 flex items-center justify-between gap-3 border-b border-gray-100">
+    <div class="flex items-center gap-3">
+      <button id="btnBackRenovasi" onclick="closeFormRenovasi()" class="md:hidden text-gray-700 text-xl active:scale-95 transition">←</button>
+      <div>
+        <h2 class="text-base font-semibold text-gray-900">Konfirmasi Renovasi</h2>
+        <p class="text-xs text-gray-500">Daftarkan rencana renovasi rumah Anda</p>
+      </div>
     </div>
+    <button onclick="closeFormRenovasi()"
+            class="hidden md:flex w-8 h-8 rounded-full bg-gray-100 items-center justify-center text-gray-500 hover:bg-gray-200 active:scale-95 transition flex-shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <!-- SCROLL -->
@@ -3249,19 +3348,24 @@
 
 <!-- ================= FEEDBACK MODAL ================= -->
 <div id="feedbackModal"
+     onclick="closeFeedbackModal()"
      class="fixed inset-0 z-[800] hidden bg-black/40 flex items-end justify-center">
 
-  <div class="bg-white w-full max-w-md rounded-t-3xl pb-safe animate-fadeIn">
-
-    <!-- HANDLE -->
-    <div class="flex justify-center pt-3 pb-1">
-      <div class="w-10 h-1 bg-gray-200 rounded-full"></div>
-    </div>
+  <div onclick="event.stopPropagation()"
+       class="bg-white w-full max-w-md rounded-t-3xl pb-safe animate-fadeIn">
 
     <!-- HEADER -->
-    <div class="px-5 pt-3 pb-4 border-b border-gray-50">
-      <p class="text-base font-bold text-gray-900">Beri Penilaian</p>
-      <p class="text-xs text-gray-400 mt-0.5">Bantu kami meningkatkan layanan JPortal</p>
+    <div class="px-5 pt-5 pb-4 border-b border-gray-50 flex items-start justify-between">
+      <div>
+        <p class="text-base font-bold text-gray-900">Beri Penilaian</p>
+        <p class="text-xs text-gray-400 mt-0.5">Bantu kami meningkatkan layanan JPortal</p>
+      </div>
+      <button onclick="closeFeedbackModal()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
 
     <!-- BODY -->
@@ -3312,8 +3416,10 @@
 
 <!-- ===== CREATE PIN MODAL ===== -->
 <div id="createPINModal"
+     onclick="closeCreatePINModal()"
      class="fixed inset-0 z-[800] hidden bg-black/40 flex items-center justify-center px-4">
-  <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
+  <div onclick="event.stopPropagation()"
+       class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
 
     <div class="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
       <p class="text-base font-bold text-gray-900">Buat / Ubah PIN</p>
@@ -3372,20 +3478,28 @@
 
 <!-- ===== ABOUT MODAL ===== -->
 <div id="aboutModal"
+     onclick="closeAboutModal()"
      class="fixed inset-0 z-[800] hidden bg-black/40 flex items-end justify-center">
-  <div class="bg-white w-full max-w-md rounded-t-3xl pb-safe">
+  <div onclick="event.stopPropagation()"
+       class="bg-white w-full max-w-md rounded-t-3xl pb-safe">
 
     <div class="px-5 pt-5 pb-4">
-      <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
-
-      <div class="flex items-center gap-4 mb-5">
-        <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <span class="text-2xl font-black text-primary">J</span>
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span class="text-2xl font-black text-primary">J</span>
+          </div>
+          <div>
+            <p class="text-base font-bold text-gray-900">JPortal</p>
+            <p class="text-xs text-gray-400 mt-0.5">v1.0.0</p>
+          </div>
         </div>
-        <div>
-          <p class="text-base font-bold text-gray-900">JPortal</p>
-          <p class="text-xs text-gray-400 mt-0.5">v1.0.0</p>
-        </div>
+        <button onclick="closeAboutModal()"
+                class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
 
       <div class="space-y-3 text-sm text-gray-500 leading-relaxed">
@@ -3409,13 +3523,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="px-5 pb-6">
-      <button onclick="closeAboutModal()"
-              class="w-full py-3 text-sm text-gray-400 font-medium">
-        Tutup
-      </button>
     </div>
 
   </div>
@@ -3454,10 +3561,17 @@
        style="max-height: 80vh;">
 
     <!-- FREEZE HEADER -->
-    <div class="flex-shrink-0 px-5 pt-5 pb-3">
-      <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
-      <p class="text-base font-bold text-gray-900">Security Team</p>
-      <p class="text-xs text-gray-400 mt-0.5">Jade Park Serpong 2</p>
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 flex items-start justify-between">
+      <div>
+        <p class="text-base font-bold text-gray-900">Security Team</p>
+        <p class="text-xs text-gray-400 mt-0.5">Jade Park Serpong 2</p>
+      </div>
+      <button onclick="toggleSecurityModal()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
 
     <!-- FREEZE SEARCH -->
@@ -3477,14 +3591,6 @@
 
     <!-- SCROLLABLE LIST -->
     <div id="securityContactList" class="flex-1 overflow-y-auto px-5 pb-3">
-    </div>
-
-    <!-- FREEZE FOOTER -->
-    <div class="flex-shrink-0 px-5 pb-6 pt-2 border-t border-gray-50">
-      <button onclick="toggleSecurityModal()"
-              class="w-full py-3 text-sm text-gray-400 font-medium">
-        Tutup
-      </button>
     </div>
 
   </div>
