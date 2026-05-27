@@ -191,12 +191,14 @@ function gasPost_(action, body) {
         infoEl.innerText = '';
         updateTarifDisplay_(false);
         updateNavAdminVisibility();
+        _updateDesktopSidebarProfile_();
         return;
       }
 
       infoEl.classList.add('hidden');
       updateTarifDisplay_(true);
       updateNavAdminVisibility();
+      _updateDesktopSidebarProfile_();
     }
 
     function updateTarifDisplay_(isLoggedIn) {
@@ -320,6 +322,7 @@ function gasPost_(action, body) {
       if (nameEl)    nameEl.innerText  = currentUser.fullName || '';
       if (profEmail) profEmail.innerText = currentUser.email || '';
       _renderProfileAvatar_(currentUser.fullName || '');
+      _updateDesktopSidebarProfile_();
 
       // ===== RE-RENDER BLOK LIST =====
       function renderSayaWargaData_(data) {
@@ -3062,10 +3065,70 @@ function gasPost_(action, body) {
   }
 
   function setActiveNavById(navId) {
+    // Old bottom nav
     const navItems = document.querySelectorAll('.nav-app');
     navItems.forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById(navId);
     if (activeBtn) activeBtn.classList.add('active');
+    // New desktop sidebar
+    document.querySelectorAll('.dsk-nav').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelectorAll('.dsk-nav[data-navid="' + navId + '"]').forEach(btn => {
+      if (!btn.classList.contains('dsk-nav-cta') && !btn.classList.contains('dsk-nav-logout')) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  function _updateDesktopSidebarProfile_() {
+    var logoutBtn = document.getElementById('dskNavLogout');
+    if (!currentUser) {
+      if (logoutBtn) logoutBtn.classList.add('hidden');
+      return;
+    }
+    var name = currentUser.fullName || currentUser.name || currentUser.email || '';
+    var role = currentUser.role === 'admin' ? 'Administrator' : 'Warga';
+    var initial = name.trim().charAt(0).toUpperCase() || '?';
+    var colors = ['#E53935','#8E24AA','#1E88E5','#00ACC1','#43A047','#FB8C00','#6D4C41','#546E7A','#D81B60','#3949AB'];
+    var color = colors[(name.charCodeAt(0) || 0) % colors.length];
+
+    // Sidebar profile
+    var profile = document.getElementById('desktopSidebarProfile');
+    if (profile) {
+      profile.classList.remove('hidden');
+      var av = document.getElementById('desktopSidebarAvatar');
+      var nm = document.getElementById('desktopSidebarName');
+      var rl = document.getElementById('desktopSidebarRole');
+      if (av) { av.textContent = initial; av.style.background = color; }
+      if (nm) nm.textContent = name;
+      if (rl) rl.textContent = role;
+    }
+
+    // Topbar profile (right)
+    var tav = document.getElementById('desktopTopbarAvatar');
+    var tnm = document.getElementById('desktopTopbarName');
+    var trl = document.getElementById('desktopTopbarRole');
+    if (tav) { tav.textContent = initial; tav.style.background = color; }
+    if (tnm) tnm.textContent = name;
+    if (trl) trl.textContent = role;
+
+    // Topbar greeting (left) — sync from home page greeting els
+    var greetSrc = document.getElementById('homeGreeting');
+    var userSrc  = document.getElementById('homeUsername');
+    var tg = document.getElementById('desktopTopbarGreeting');
+    if (tg && greetSrc) tg.textContent = greetSrc.textContent;
+
+    // Admin button
+    var adminBtn = document.getElementById('dskNavAdmin');
+    if (adminBtn) {
+      if (currentUser.role === 'admin') adminBtn.classList.remove('hidden');
+      else adminBtn.classList.add('hidden');
+    }
+
+    // Logout button — show only when logged in
+    var logoutBtn = document.getElementById('dskNavLogout');
+    if (logoutBtn) logoutBtn.classList.remove('hidden');
   }
 
   function openLoginModal() {
@@ -3260,10 +3323,8 @@ function gasPost_(action, body) {
     var methodStep = document.getElementById('sayaStepMethod');
     if (!methodStep) return;
     emailStep.classList.add('hidden');
+    methodStep.style.display = '';
     methodStep.classList.remove('hidden');
-    methodStep.style.display = 'flex';
-    methodStep.style.flexDirection = 'column';
-    methodStep.style.height = '100%';
     var methodEmail = document.getElementById('sayaMethodEmail');
     if (methodEmail) methodEmail.innerText = email;
   }
@@ -3536,6 +3597,7 @@ function gasPost_(action, body) {
     if (profName) profName.innerText = user.fullName || 'User';
     if (profEmail) profEmail.innerText = user.email;
     _renderProfileAvatar_(user.fullName || 'User');
+    _updateDesktopSidebarProfile_();
     document.getElementById('sayaLoggedInView').classList.remove('hidden');
     document.body.classList.remove('saya-open');
     switchPage('homePage');
@@ -5210,6 +5272,10 @@ function updateHomeGreeting() {
 
   greetEl.innerText = greeting;
 
+  // Sync to desktop topbar
+  var tg = document.getElementById('desktopTopbarGreeting');
+  if (tg) tg.textContent = greeting;
+
   if (currentUser && currentUser.fullName) {
     var displayName = currentUser.fullName;
     var isAdmin = currentUser.role === 'admin';
@@ -5224,8 +5290,10 @@ function updateHomeGreeting() {
     }
   } else if (currentUser && currentUser.email) {
     nameEl.innerText = currentUser.email.split('@')[0];
+    if (tu) tu.textContent = currentUser.email.split('@')[0];
   } else {
     nameEl.innerText = 'Warga JPS2';
+    if (tu) tu.textContent = 'Warga JPS2';
   }
 }
 
@@ -6433,21 +6501,17 @@ function renderContactList(res, listEl) {
 }
 
 function backToEmailStep() {
-  var otpStep   = document.getElementById('sayaStepOTP');
+  // Hide ALL steps first, then show email step
+  ['sayaStepOTP','sayaStepMethod','sayaStepResetPIN'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.classList.add('hidden'); el.style.display = ''; }
+  });
   var emailStep = document.getElementById('sayaStepEmail');
-  otpStep.style.opacity = '0';
-  otpStep.style.transform = 'translateY(6px)';
-  otpStep.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
-  setTimeout(function() {
-    otpStep.classList.add('hidden');
-    otpStep.style.opacity = '';
-    otpStep.style.transform = '';
+  if (emailStep) {
     emailStep.classList.remove('hidden');
     emailStep.classList.add('saya-step');
-    setTimeout(function() {
-      emailStep.classList.remove('saya-step');
-    }, 300);
-  }, 180);
+    setTimeout(function() { emailStep.classList.remove('saya-step'); }, 300);
+  }
 }
 
 function closePageSaya() {

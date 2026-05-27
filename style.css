@@ -806,7 +806,104 @@ html, body {
   /* ============================================================
      DESKTOP — Full-screen dashboard style (min-width: 768px)
   ============================================================ */
+  /* ── Desktop Sidebar (new) ── */
+  #desktopSidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 200px;
+    background: #fff;
+    border-right: 1px solid #E8EBE8;
+    box-shadow: 2px 0 16px rgba(0,0,0,0.04);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .desktop-sidebar-brand {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid #F0F2EF;
+    flex-shrink: 0;
+  }
+
+  .desktop-sidebar-profile {
+    display: none !important;
+  }
+
+  .desktop-sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 10px 10px 0;
+    overflow-y: auto;
+  }
+
+  .dsk-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+
+  .dsk-nav:hover { background: #F5F8F5; color: #166534; }
+
+  .dsk-nav.active {
+    background: #DCFCE7;
+    color: #166534;
+    font-weight: 600;
+  }
+
+  .dsk-nav-cta {
+    background: linear-gradient(135deg, #43A047, #2E7D32);
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(46,125,50,0.25);
+    margin-top: 0;
+  }
+
+  .dsk-nav-cta:hover {
+    background: linear-gradient(135deg, #388E3C, #1B5E20) !important;
+    box-shadow: 0 4px 12px rgba(46,125,50,0.35);
+  }
+
+  .dsk-nav-logout {
+    color: #EF4444 !important;
+    border-top: 1px solid #F3F4F6;
+    border-radius: 0 !important;
+    padding-top: 10px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .dsk-nav-logout:hover {
+    background: #FEF2F2 !important;
+    border-radius: 8px !important;
+  }
+
+  .desktop-sidebar-footer {
+    padding: 12px 14px 16px;
+    border-top: 1px solid #F0F2EF;
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+
   @media (min-width: 768px) {
+    #desktopTopbar { display: flex !important; }
+    /* Adjust pages to account for topbar height (52px) */
+    #homePage, #dashboard, #pageSaya, #explorePage {
+      padding-top: 64px !important;
+    }
 
     /* ════════════════════════════════════════════
        BODY & SHELL — Full-screen, no container box
@@ -826,13 +923,17 @@ html, body {
       position: static;
     }
 
-    /* Top header: HIDDEN, branding di sidebar */
-    header {
-      display: none !important;
-    }
+    /* Top header: HIDDEN */
+    header { display: none !important; }
+
+    /* Old bottom nav: HIDDEN, replaced by desktopSidebar */
+    nav#bottomNav { display: none !important; }
+
+    /* New desktop sidebar: SHOW */
+    #desktopSidebar { display: flex !important; }
 
     /* ════════════════════════════════════════════
-       SIDEBAR — Fixed, full-height, clean white
+       SIDEBAR — Fixed, compact, clean white
     ════════════════════════════════════════════ */
     nav {
       position: fixed !important;
@@ -840,7 +941,7 @@ html, body {
       top: 0 !important;
       bottom: 0 !important;
       right: auto !important;
-      width: 240px !important;
+      width: 200px !important;
       height: 100vh !important;
       border-top: none !important;
       border-right: 1px solid #E8EBE8 !important;
@@ -857,7 +958,7 @@ html, body {
     nav::before {
       content: '';
       display: block;
-      height: 68px;
+      height: 56px;
       flex-shrink: 0;
       background: #fff;
       border-bottom: 1px solid #F0F2EF;
@@ -867,14 +968,14 @@ html, body {
       content: 'JPortal';
       position: absolute;
       top: 0; left: 0; right: 0;
-      height: 68px;
+      height: 56px;
       display: flex;
       align-items: center;
-      padding: 0 22px;
-      font-size: 20px;
+      padding: 0 18px;
+      font-size: 17px;
       font-weight: 900;
       color: #1B5E20;
-      letter-spacing: -0.6px;
+      letter-spacing: -0.5px;
       pointer-events: none;
     }
 
@@ -885,20 +986,23 @@ html, body {
       flex: 1 !important;
       align-items: stretch !important;
       justify-content: flex-start !important;
-      gap: 2px !important;
-      padding: 14px 14px 20px !important;
+      gap: 1px !important;
+      padding: 10px 10px 16px !important;
     }
 
-    /* Nav items */
+    /* Nav items — compact row, no flex-1 stretch */
     .nav-app {
+      flex: none !important;
       flex-direction: row !important;
+      align-items: center !important;
       justify-content: flex-start !important;
-      gap: 12px !important;
-      padding: 10px 14px !important;
-      border-radius: 10px !important;
-      font-size: 14px !important;
+      gap: 10px !important;
+      padding: 8px 12px !important;
+      height: auto !important;
+      min-height: unset !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
       font-weight: 500 !important;
-      min-width: unset !important;
       width: 100% !important;
       color: #6B7280 !important;
       background: transparent !important;
@@ -910,9 +1014,6 @@ html, body {
       color: #166534 !important;
     }
 
-    .nav-app span { font-size: 14px !important; font-weight: 500 !important; }
-    .nav-app svg  { width: 18px !important; height: 18px !important; flex-shrink: 0; }
-
     .nav-app.active {
       background: #DCFCE7 !important;
       color: #166534 !important;
@@ -921,35 +1022,71 @@ html, body {
 
     .nav-app.active::after { display: none !important; }
 
-    /* ── FAB → full-width CTA di sidebar (desktop) ── */
-    #navFabWrapper {
-      margin-top: 6px !important;
-      order: 2 !important;
-      width: 100% !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
-      padding-bottom: 0 !important;
+    /* Reset icon-wrap — just a small container */
+    .nav-app .nav-icon-wrap {
+      background: transparent !important;
+      width: 18px !important;
+      height: 18px !important;
+      min-width: 18px !important;
+      border-radius: 0 !important;
+      flex-shrink: 0 !important;
     }
 
+    .nav-app .nav-icon-wrap svg,
+    .nav-app > svg { width: 16px !important; height: 16px !important; flex-shrink: 0; }
+
+    /* Nav label — inline text */
+    .nav-app .nav-label {
+      display: block !important;
+      font-size: 13px !important;
+      font-weight: inherit !important;
+      line-height: 1 !important;
+    }
+
+    /* ── Logout — show only on desktop, pinned bottom ── */
+    #navLogoutBtn {
+      display: flex !important;
+      margin-top: 4px !important;
+      color: #EF4444 !important;
+      background: transparent !important;
+      border-top: 1px solid #F3F4F6 !important;
+      padding-top: 10px !important;
+      border-radius: 0 !important;
+    }
+
+    #navLogoutBtn:hover {
+      background: #FEF2F2 !important;
+      color: #DC2626 !important;
+      border-radius: 8px !important;
+    }
+
+    #navLogoutBtn .nav-icon-wrap { background: transparent !important; }
+
+    /* ── Desktop nav order: Home(1) History(2) Admin(3) Me(4) BayarIPL(5) Logout(6) ── */
+    #navHome        { order: 1 !important; }
+    #navActivity    { order: 2 !important; }
+    #navAdmin       { order: 3 !important; }
+    #navMe          { order: 4 !important; }
+    #navFabBayarBtn { order: 5 !important; }
+    #navLogoutBtn   { order: 6 !important; }
+
+    /* ── Bayar IPL — push both Bayar + Logout to bottom ── */
     #navFabBayarBtn {
-      width: 100% !important;
-      border-radius: 14px !important;
-      padding: 12px 16px !important;
+      margin-top: auto !important;
       background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%) !important;
-      box-shadow: 0 4px 16px rgba(46,125,50,0.30) !important;
-      gap: 8px !important;
-      justify-content: center !important;
-      transition: box-shadow 0.15s ease, transform 0.1s ease !important;
+      color: white !important;
+      border-radius: 8px !important;
+      padding: 8px 12px !important;
+      justify-content: flex-start !important;
+      box-shadow: 0 2px 8px rgba(46,125,50,0.25) !important;
     }
 
     #navFabBayarBtn:hover {
-      box-shadow: 0 6px 20px rgba(46,125,50,0.40) !important;
-      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 14px rgba(46,125,50,0.35) !important;
     }
 
-    #navFabBayarBtn:active { transform: translateY(0) !important; }
-    #navFabBayarBtn svg { width: 18px !important; height: 18px !important; }
-    #navFabBayarBtn > span { animation: none !important; box-shadow: none !important; }
+    #navFabBayarBtn .nav-label { color: white !important; }
+    #navFabBayarBtn .nav-icon-wrap { background: transparent !important; }
 
     /* ════════════════════════════════════════════
        HOME PAGE — full-screen content area
@@ -957,7 +1094,7 @@ html, body {
     #homePage {
       position: fixed !important;
       top: 0 !important;
-      left: 240px !important;
+      left: 200px !important;
       right: 0 !important;
       bottom: 0 !important;
       width: auto !important;
@@ -966,14 +1103,16 @@ html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
       background: #F0F2F0 !important;
-      padding: 32px 28px 48px !important;
+      padding: 68px 28px 48px !important;
       transform: none !important;
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
     }
 
-    /* Greeting */
+    /* Greeting block — hidden on desktop (shown in topbar) */
+    #homeGreetingBlock { display: none !important; }
+
     #homeGreeting { font-size: 13px !important; }
     #homeUsername  { font-size: 24px !important; font-weight: 800 !important; }
 
@@ -1022,11 +1161,11 @@ html, body {
     #pageSaya,
     #explorePage {
       position: fixed !important;
-      left: 240px !important;
+      left: 200px !important;
       right: 0 !important;
       top: 0 !important;
       bottom: 0 !important;
-      width: calc(100vw - 240px) !important;
+      width: calc(100vw - 200px) !important;
       max-width: none !important;
       min-width: 0 !important;
       transform: none !important;
@@ -1096,6 +1235,16 @@ html, body {
       transform: none !important;
     }
 
+    /* ── PWA install banners — hidden on desktop ── */
+    #pwaInstallBanner,
+    #pwaIOSBanner { display: none !important; }
+
+    /* ── Pedoman masuk dalam homeGrid kolom kanan ── */
+    #homePedomanSection {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+
     /* SOS button */
     #securityBtn {
       position: fixed !important;
@@ -1115,6 +1264,10 @@ html, body {
       box-shadow: none !important;
       background: #F0F2F0 !important;
       z-index: 50 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding-top: 0 !important;
     }
 
     /* pageSaya.active — tetap full panel */
@@ -1123,6 +1276,37 @@ html, body {
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
+    }
+
+    /* Login steps → centered card on desktop */
+    #pageSaya #sayaStepEmail,
+    #pageSaya #sayaStepMethod,
+    #pageSaya #sayaStepOTP,
+    #pageSaya #sayaStepResetPIN {
+      width: 480px !important;
+      max-width: 92vw !important;
+      height: auto !important;
+      max-height: calc(100vh - 100px) !important;
+      overflow-y: auto !important;
+      background: #ffffff !important;
+      border-radius: 24px !important;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px rgba(0,0,0,0.04) !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Hide the close (×) button on desktop — Me is a persistent nav item */
+    #pageSaya #sayaStepEmail > div:first-child button,
+    #pageSaya #sayaStepMethod > div:first-child button,
+    #pageSaya #sayaStepOTP > div:first-child button,
+    #pageSaya #sayaStepResetPIN > div:first-child button {
+      display: none !important;
+    }
+
+    /* pageSaya logged-in content → full width */
+    #pageSaya #sayaLoggedInView {
+      width: 100% !important;
+      height: 100% !important;
+      overflow-y: auto !important;
     }
 
     /* Sheet (Form Bayar IPL) → centered modal card */
