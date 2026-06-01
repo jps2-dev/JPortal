@@ -3297,10 +3297,10 @@
 
   <!-- FORM CARD -->
   <div id="daftarFormCard"
-       class="bg-white rounded-t-3xl px-5 pt-5 pb-8 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+       class="bg-white rounded-t-3xl flex flex-col max-h-[90vh]">
 
-    <!-- HEADER -->
-    <div class="flex items-center justify-between mb-1">
+    <!-- HEADER (sticky) -->
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 border-b border-gray-100">
       <div>
         <h2 class="text-base font-bold text-gray-900">Daftar Akun Warga</h2>
         <p class="text-xs text-gray-400 mt-0.5">Isi data diri kamu untuk pengajuan akun</p>
@@ -3313,8 +3313,8 @@
       </button>
     </div>
 
-    <!-- FORM BODY -->
-    <div id="daftarFormBody" class="flex flex-col gap-4">
+    <!-- FORM BODY (scrollable) -->
+    <div id="daftarFormBody" class="flex flex-col gap-4 overflow-y-auto px-5 pt-4 pb-8">
 
       <!-- NAMA -->
       <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
