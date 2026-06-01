@@ -9,6 +9,13 @@ html, body {
   font-family: inherit;
 }
 
+/* ===== LAPOR STATUS BADGES ===== */
+.lapor-badge-masuk    { background:#FFF3E0; color:#E65100; }
+.lapor-badge-diproses { background:#E3F2FD; color:#1565C0; }
+.lapor-badge-selesai  { background:#E8F5E9; color:#2E7D32; }
+.lapor-badge-ditolak  { background:#FCE4EC; color:#AD1457; }
+
+
 /* ===== GREETING TYPING CURSOR — global so inline style.animation works ===== */
 @keyframes greetCursor {
   0%, 100% { border-right-color: rgba(255,255,255,0.9); }
@@ -901,7 +908,7 @@ html, body {
   @media (min-width: 768px) {
     #desktopTopbar { display: flex !important; }
     /* Adjust pages to account for topbar height (52px) */
-    #homePage, #dashboard, #pageSaya, #explorePage {
+    #homePage, #dashboard, #pageSaya, #laporPage, #explorePage {
       padding-top: 64px !important;
     }
 
@@ -1159,6 +1166,7 @@ html, body {
     ════════════════════════════════════════════ */
     #dashboard,
     #pageSaya,
+    #laporPage,
     #explorePage {
       position: fixed !important;
       left: 200px !important;
@@ -1187,6 +1195,7 @@ html, body {
     /* ── Semua internal flex/scroll area ── */
     #dashboard .flex-1,
     #pageSaya .flex-1,
+    #laporPage .flex-1,
     #explorePage .flex-1,
     #formMudik .flex-1,
     #formRenovasi .flex-1,
@@ -1258,6 +1267,112 @@ html, body {
        MODAL CARDS — centered di desktop
     ════════════════════════════════════════════ */
 
+    /* laporPage → full panel with topbar offset */
+    #laporPage {
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: #F0F2F0 !important;
+      z-index: 50 !important;
+      padding-top: 52px !important;
+    }
+
+    /* daftarFormSheet → centered card on desktop */
+    #daftarFormSheet {
+      left: 200px !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #daftarFormSheet > div:first-child { display: none !important; }
+    #daftarFormCard {
+      width: 560px !important;
+      max-width: 92vw !important;
+      margin: 0 !important;
+      border-radius: 24px !important;
+      max-height: 88vh !important;
+      transform: none !important;
+      transition: none !important;
+    }
+
+    /* laporFormSheet → centered card on desktop */
+    #laporFormSheet {
+      left: 200px !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #laporFormSheet > div:first-child { display: none !important; } /* hide tap-to-close flex-1 */
+    #laporFormCard {
+      width: 560px !important;
+      max-width: 92vw !important;
+      margin: 0 !important;
+      border-radius: 24px !important;
+      max-height: 88vh !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    #laporDetailModal {
+      left: 200px !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #laporDetailModal > div.absolute { display: none !important; }
+    #laporDetailCard {
+      position: relative !important;
+      width: 560px !important;
+      max-width: 92vw !important;
+      margin: 0 !important;
+      border-radius: 24px !important;
+      max-height: 85vh !important;
+    }
+
+    /* ── ALL bottom-sheet modals → centered on desktop (left:200px for sidebar) ── */
+    #wargaBaruCRUDModal,
+    #adminPengaduanModal,
+    #adminPengaduanDetailModal,
+    #modalAktifkanWarga,
+    #greetingCRUDModal,
+    #greetingFormModal,
+    #dataWargaCRUDModal,
+    #infoCRUDModal,
+    #fasumCRUDModal {
+      left: 200px !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    /* Inner card sizing + scroll */
+    #wargaBaruCRUDModal > div,
+    #adminPengaduanModal > div,
+    #adminPengaduanDetailModal > div,
+    #greetingCRUDModal > div,
+    #dataWargaCRUDModal > div,
+    #infoCRUDModal > div,
+    #fasumCRUDModal > div {
+      width: 560px !important;
+      max-width: 92vw !important;
+      border-radius: 24px !important;
+      max-height: 88vh !important;
+      overflow: hidden !important;
+    }
+
+    /* Ensure scroll containers inside modals actually scroll */
+    #wargaBaruCRUDList,
+    #adminPengaduanList,
+    #adminPengaduanDetailBody,
+    #greetingCRUDList,
+    #dataWargaCRUDList,
+    #infoCRUDList,
+    #fasumCRUDList {
+      overflow-y: auto !important;
+      max-height: calc(88vh - 120px) !important;
+    }
+
+    #modalAktifkanWarga > div,
+    #greetingFormModal > div {
+      border-radius: 24px !important;
+      max-height: 88vh !important;
+      overflow-y: auto !important;
+    }
+
     /* pageSaya → FULL PANEL (handled by main PAGES block above) */
     #pageSaya {
       border-radius: 0 !important;
@@ -1267,7 +1382,7 @@ html, body {
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      padding-top: 0 !important;
+      /* padding-top: 64px already applied by global pages rule — do NOT override */
     }
 
     /* pageSaya.active — tetap full panel */
@@ -1341,7 +1456,7 @@ html, body {
       top: 50% !important;
       right: auto !important;
       bottom: auto !important;
-      width: 520px !important;
+      width: 560px !important;
       max-width: 92vw !important;
       height: auto !important;
       max-height: 88vh !important;
@@ -1355,20 +1470,7 @@ html, body {
     }
 
     /* ── Bottom-sheet modals → centered on desktop ── */
-    /* infoCRUDModal & fasumCRUDModal */
-    #infoCRUDModal,
-    #fasumCRUDModal {
-      align-items: center !important;
-      justify-content: center !important;
-    }
-
-    #infoCRUDModal > div,
-    #fasumCRUDModal > div {
-      border-radius: 20px !important;
-      width: 520px !important;
-      max-width: 92vw !important;
-      margin: 0 auto !important;
-    }
+    /* infoCRUDModal & fasumCRUDModal → handled in unified block above */
 
     /* ── Bottom-sheet modals → centered cards on desktop ── */
     #feedbackModal,
@@ -1391,14 +1493,6 @@ html, body {
       max-width: 92vw !important;
       max-height: 88vh !important;
       overflow-y: auto !important;
-    }
-    /* Hide drag handles on desktop */
-    #feedbackModal .w-10.h-1,
-    #contactModal .w-10.h-1,
-    #aboutModal .w-10.h-1,
-    #securityOverlay .w-10.h-1,
-    #adminBayarPicker .w-10.h-1 {
-      display: none !important;
     }
 
     /* ── adminBayarPicker & tunggakanModal → centered on desktop ── */
@@ -1526,3 +1620,251 @@ html, body {
   transform: scale(0.96);
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
+
+/* ===== GREETING BANNER ANIMATIONS ===== */
+@keyframes liveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+@keyframes bannerPulseRing {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.0); }
+  50%      { box-shadow: 0 0 0 4px rgba(255,255,255,0.08); }
+}
+
+/* ===== AURORA BANNER ANIMATION ===== */
+@keyframes auroraMove {
+  0%   { transform: scale(1)   translateX(0)   translateY(0);   opacity: 1; }
+  33%  { transform: scale(1.1) translateX(8px)  translateY(-6px); opacity: 0.85; }
+  66%  { transform: scale(0.95) translateX(-6px) translateY(4px);  opacity: 0.9; }
+  100% { transform: scale(1.05) translateX(4px)  translateY(-4px); opacity: 1; }
+}
+
+/* =====================================================
+   DARK MODE — Comprehensive
+   Base: #0f0f13 | Card: #1a1a27 | Surface: #1f1f2e | Border: #2a2a3d
+===================================================== */
+body.dark {
+  background: #0f0f13 !important;
+  color: #e2e8f0;
+}
+
+/* ── bg-softbg override (semua page pakai ini) ── */
+body.dark .bg-softbg,
+body.dark [class*="bg-softbg"] { background-color: #0f0f13 !important; }
+
+/* ── Pages ── */
+body.dark #homePage, body.dark #laporPage, body.dark #rekeningPage,
+body.dark #infoPage, body.dark #sayaPage, body.dark #pedomanPage,
+body.dark #fasumPage, body.dark #contactPage,
+body.dark #dashboard, body.dark #explorePage, body.dark #sheet {
+  background: #0f0f13 !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Header ── */
+body.dark header {
+  background: rgba(15,15,19,0.95) !important;
+  border-color: #2a2a3d !important;
+}
+body.dark header .font-black { color: #f8fafc !important; }
+body.dark header .text-gray-400 { color: #64748b !important; }
+body.dark #headerGreetingText { color: #cbd5e1 !important; }
+
+/* ── Header buttons ── */
+body.dark #darkModeBtn, body.dark #notifBellBtn {
+  background: #1f1f2e !important;
+}
+body.dark #darkModeBtn svg, body.dark #notifBellBtn svg { color: #94a3b8 !important; }
+body.dark #iconSun { color: #fbbf24 !important; }
+
+/* ── Backgrounds ── */
+body.dark .bg-white { background: #1a1a27 !important; }
+body.dark .bg-gray-50 { background: #13131e !important; }
+body.dark .bg-gray-100 { background: #1f1f2e !important; }
+body.dark .bg-gray-200 { background: #252538 !important; }
+
+/* ── Borders ── */
+body.dark .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark .border-gray-200 { border-color: #2a2a3d !important; }
+body.dark .divide-gray-50 > * + * { border-color: #2a2a3d !important; }
+
+/* ── Shadows ── */
+body.dark .shadow-sm { box-shadow: 0 1px 4px rgba(0,0,0,0.5) !important; }
+body.dark .shadow-2xl { box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important; }
+
+/* ── Text ── */
+body.dark .text-gray-900 { color: #f1f5f9 !important; }
+body.dark .text-gray-800 { color: #e2e8f0 !important; }
+body.dark .text-gray-700 { color: #cbd5e1 !important; }
+body.dark .text-gray-600 { color: #94a3b8 !important; }
+body.dark .text-gray-500 { color: #64748b !important; }
+body.dark .text-gray-400 { color: #475569 !important; }
+
+/* ── Inputs & Form ── */
+body.dark .app-input {
+  background: #1f1f2e !important;
+  border-color: #2a2a3d !important;
+  color: #f1f5f9 !important;
+}
+body.dark .app-input::placeholder { color: #475569 !important; }
+body.dark .app-date { background: #1f1f2e !important; color: #f1f5f9 !important; }
+body.dark #tanggalContainer { background: #1f1f2e !important; border-color: #2a2a3d !important; }
+body.dark #tanggalDisplay { color: #f1f5f9 !important; }
+body.dark textarea { background: #1f1f2e !important; color: #f1f5f9 !important; }
+
+/* ── Chips (month/year) ── */
+body.dark .chip:not(.active):not([data-pending]) {
+  background: #1f1f2e !important;
+  border-color: #2a2a3d !important;
+  color: #94a3b8 !important;
+}
+body.dark .chip-year:not(.active) {
+  background: #1f1f2e !important;
+  border-color: #2a2a3d !important;
+  color: #94a3b8 !important;
+}
+body.dark .hunian-card:not(.active) {
+  background: #1f1f2e !important;
+  border-color: #2a2a3d !important;
+  color: #94a3b8 !important;
+}
+
+/* ── Bottom Nav ── */
+body.dark nav {
+  background: #13131e !important;
+  border-color: #1f1f2e !important;
+}
+body.dark .nav-item { color: #475569 !important; }
+body.dark .nav-item.active { color: #4ade80 !important; }
+
+/* ── Modals & Sheets ── */
+body.dark #sheet { background: #13131e !important; }
+body.dark #detailPaymentCard { background: #1a1a27 !important; }
+body.dark .rounded-3xl.bg-white { background: #1a1a27 !important; }
+body.dark .rounded-2xl.bg-white { background: #1a1a27 !important; }
+
+/* ── Notif panel ── */
+body.dark #notifPanel { background: #1a1a27 !important; }
+body.dark #notifPanel .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark #notifPanel p.text-gray-900 { color: #f1f5f9 !important; }
+body.dark #notifList .flex { border-color: #2a2a3d !important; }
+
+/* ── Fasum cards (light colored bg) ── */
+body.dark [style*="background:#f0fdf4"],
+body.dark [style*="background: #f0fdf4"] { background: #1a2e22 !important; }
+body.dark [style*="background:#fff7ed"],
+body.dark [style*="background: #fff7ed"] { background: #2e1f0f !important; }
+body.dark [style*="background:#fef2f2"],
+body.dark [style*="background: #fef2f2"] { background: #2e0f0f !important; }
+body.dark [style*="background:#eff6ff"],
+body.dark [style*="background: #eff6ff"] { background: #0f1a2e !important; }
+body.dark [style*="background:#fdf4ff"],
+body.dark [style*="background: #fdf4ff"] { background: #1e0f2e !important; }
+
+/* Fasum card override via tailwind classes */
+body.dark .bg-green-50 { background: #1a2e22 !important; }
+body.dark .bg-orange-50 { background: #2e1f0f !important; }
+body.dark .bg-red-50    { background: #2e0f0f !important; }
+body.dark .bg-blue-50   { background: #0f1a2e !important; }
+body.dark .bg-purple-50 { background: #1e0f2e !important; }
+body.dark .bg-yellow-50 { background: #2e2a0f !important; }
+body.dark .bg-teal-50   { background: #0f2e2a !important; }
+
+/* ── Lapor badges ── */
+body.dark .lapor-badge-masuk    { background: #2e1a0f; color: #fb923c; }
+body.dark .lapor-badge-diproses { background: #0f1a2e; color: #60a5fa; }
+body.dark .lapor-badge-selesai  { background: #0f2e1a; color: #4ade80; }
+body.dark .lapor-badge-ditolak  { background: #2e0f1a; color: #f472b6; }
+
+/* ── IPL form sheet content ── */
+body.dark #sheet .bg-white { background: #1a1a27 !important; }
+body.dark #sheet .bg-gray-50 { background: #13131e !important; }
+body.dark #sheet .border-gray-200 { border-color: #2a2a3d !important; }
+
+/* ── SOS button (keep red) ── */
+body.dark #sosBtn { /* intentionally kept red */ }
+
+/* ── Sheet / Form IPL ── */
+body.dark #sheet { background: #0f0f13 !important; }
+body.dark #sheet .sticky { background: #13131e !important; border-color: #2a2a3d !important; }
+body.dark #sheet h2 { color: #f1f5f9 !important; }
+body.dark #sheet p  { color: #94a3b8 !important; }
+body.dark #sheet .text-gray-900 { color: #f1f5f9 !important; }
+body.dark #sheet .text-gray-700 { color: #cbd5e1 !important; }
+body.dark #sheet .text-gray-500 { color: #64748b !important; }
+body.dark #sheet .text-gray-400 { color: #475569 !important; }
+body.dark #sheet .bg-white      { background: #1a1a27 !important; }
+body.dark #sheet .bg-gray-50    { background: #13131e !important; }
+body.dark #sheet .bg-gray-100   { background: #1f1f2e !important; }
+body.dark #sheet .border-gray-200 { border-color: #2a2a3d !important; }
+body.dark #sheet .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark #sheet #btnBackSheet  { color: #94a3b8 !important; }
+body.dark #sheet .rounded-3xl   { background: #1a1a27 !important; }
+body.dark #sheet .rounded-2xl   { background: #1a1a27 !important; }
+body.dark #sheet input, body.dark #sheet textarea { background: #1f1f2e !important; color: #f1f5f9 !important; border-color: #2a2a3d !important; }
+body.dark #sheet .hunian-card:not(.active) { background: #1f1f2e !important; border-color: #2a2a3d !important; color: #94a3b8 !important; }
+body.dark #sheet .chip:not(.active) { background: #1f1f2e !important; border-color: #2a2a3d !important; color: #94a3b8 !important; }
+body.dark #sheet .chip-year:not(.active) { background: #1f1f2e !important; border-color: #2a2a3d !important; color: #94a3b8 !important; }
+
+/* ── Dashboard / History ── */
+body.dark #dashboard .bg-white  { background: #1a1a27 !important; }
+body.dark #dashboard .bg-gray-50 { background: #13131e !important; }
+body.dark #dashboard .bg-gray-100 { background: #1f1f2e !important; }
+body.dark #dashboard .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark #dashboard .border-gray-200 { border-color: #2a2a3d !important; }
+body.dark #dashboard input       { background: #1f1f2e !important; color: #f1f5f9 !important; border-color: #2a2a3d !important; }
+body.dark #dashboard select      { background: #1f1f2e !important; color: #f1f5f9 !important; border-color: #2a2a3d !important; }
+body.dark #dashboard .text-gray-900 { color: #f1f5f9 !important; }
+body.dark #dashboard .text-gray-700 { color: #cbd5e1 !important; }
+body.dark #dashboard .text-gray-500 { color: #64748b !important; }
+body.dark #dashboard .text-gray-400 { color: #475569 !important; }
+body.dark #dashboard .sticky     { background: #0f0f13 !important; }
+
+/* Dashboard filter pills */
+body.dark #dashboard button.rounded-full:not(.bg-primary):not([style*="background"]) {
+  background: #1f1f2e !important;
+  color: #94a3b8 !important;
+  border-color: #2a2a3d !important;
+}
+/* Payment cards in dashboard */
+body.dark #dashboard .rounded-2xl { background: #1a1a27 !important; border-color: #2a2a3d !important; }
+body.dark #dashboard .rounded-3xl { background: #1a1a27 !important; border-color: #2a2a3d !important; }
+/* Keterangan box in payment card */
+body.dark #dashboard .bg-yellow-50 { background: #2e2a0f !important; color: #fbbf24 !important; }
+body.dark #dashboard .text-yellow-800 { color: #fbbf24 !important; }
+
+/* ── Admin / Explore Page ── */
+body.dark #explorePage .bg-white  { background: #1a1a27 !important; }
+body.dark #explorePage .bg-gray-50 { background: #13131e !important; }
+body.dark #explorePage .bg-gray-100 { background: #1f1f2e !important; }
+body.dark #explorePage .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark #explorePage .border-gray-50  { border-color: #2a2a3d !important; }
+body.dark #explorePage .text-gray-900  { color: #f1f5f9 !important; }
+body.dark #explorePage .text-gray-700  { color: #cbd5e1 !important; }
+body.dark #explorePage .text-gray-500  { color: #64748b !important; }
+body.dark #explorePage .text-gray-400  { color: #475569 !important; }
+body.dark #explorePage .sticky         { background: #0f0f13 !important; border-color: #2a2a3d !important; }
+body.dark #explorePage .rounded-3xl    { background: #1a1a27 !important; }
+body.dark #explorePage .rounded-2xl    { background: #1a1a27 !important; }
+
+/* ── Modals ── */
+body.dark [id$="Modal"] .bg-white,
+body.dark [id$="Modal"] { background: #1a1a27 !important; }
+body.dark [id$="Modal"] .bg-gray-50 { background: #13131e !important; }
+body.dark [id$="Modal"] .bg-gray-100 { background: #1f1f2e !important; }
+body.dark [id$="Modal"] .text-gray-900 { color: #f1f5f9 !important; }
+body.dark [id$="Modal"] .text-gray-700 { color: #cbd5e1 !important; }
+body.dark [id$="Modal"] .text-gray-500 { color: #64748b !important; }
+body.dark [id$="Modal"] .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark [id$="Modal"] input, body.dark [id$="Modal"] textarea, body.dark [id$="Modal"] select {
+  background: #1f1f2e !important; color: #f1f5f9 !important; border-color: #2a2a3d !important;
+}
+
+/* ── Saya Page ── */
+body.dark #sayaPage .bg-white   { background: #1a1a27 !important; }
+body.dark #sayaPage .bg-gray-50 { background: #13131e !important; }
+body.dark #sayaPage .bg-gray-100 { background: #1f1f2e !important; }
+body.dark #sayaPage .border-gray-100 { border-color: #2a2a3d !important; }
+body.dark #sayaPage .text-gray-900 { color: #f1f5f9 !important; }
+body.dark #sayaPage .text-gray-700 { color: #cbd5e1 !important; }
+body.dark #sayaPage .text-gray-500 { color: #64748b !important; }

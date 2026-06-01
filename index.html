@@ -87,28 +87,103 @@
     <span class="text-[9px] text-gray-400 font-normal tracking-normal leading-tight">Jade Park Serpong 2</span>
   </div>
 
-  <div id="headerGreeting" class="hidden">
-    <span id="headerGreetingText"
-          class="text-xs font-bold text-white bg-primary
-                 px-3 py-1.5 rounded-full shadow-sm
-                 shadow-primary/30">
-    </span>
-  </div>
-  <div id="headerUserInfo" class="text-sm text-gray-500 hidden">
-    <!-- diisi JS setelah login -->
+  <div class="flex items-center gap-2">
+    <div id="headerGreeting" class="hidden flex-col items-end">
+      <p id="headerGreetingText" class="text-xs font-semibold text-gray-700 leading-tight"></p>
+    </div>
+    <div id="headerUserInfo" class="text-sm text-gray-500 hidden">
+      <!-- diisi JS setelah login -->
+    </div>
+
+    <!-- DARK MODE TOGGLE -->
+    <button id="darkModeBtn" onclick="toggleDarkMode()"
+            class="hidden w-9 h-9 flex items-center justify-center rounded-2xl bg-gray-100 active:scale-95 transition"
+            aria-label="Toggle dark mode">
+      <!-- Sun icon (shown in dark mode) -->
+      <svg id="iconSun" class="w-5 h-5 text-gray-600 hidden" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path stroke-linecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <!-- Moon icon (shown in light mode) -->
+      <svg id="iconMoon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+
+    <!-- BELL NOTIFIKASI -->
+    <button id="notifBellBtn"
+            onclick="toggleNotifPanel()"
+            class="hidden relative w-9 h-9 flex items-center justify-center
+                   rounded-2xl bg-gray-100 active:scale-95 transition">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
+           stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span id="notifBadge"
+            class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px]
+                   flex items-center justify-center rounded-full
+                   text-[9px] font-black text-white px-1 leading-none"
+            style="background:#E11D48;"></span>
+    </button>
   </div>
 
 </header>
 
+<!-- ===== NOTIFICATION PANEL ===== -->
+<div id="notifBackdrop"
+     class="fixed inset-0 z-[48] bg-black/30 hidden transition-opacity duration-300"
+     onclick="toggleNotifPanel()"></div>
+
+<div id="notifPanel"
+     class="fixed left-0 right-0 z-[49] bg-white rounded-b-3xl overflow-hidden"
+     style="top:0; transform:translateY(-100%); transition:transform 0.32s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; box-shadow:0 12px 32px -4px rgba(0,0,0,0.18); pointer-events:none;">
+
+  <!-- Spacer = tinggi header, diisi JS -->
+  <div id="notifPanelSpacer" style="flex-shrink:0;"></div>
+
+  <!-- Panel header -->
+  <div class="flex items-center justify-between px-5 py-4 flex-shrink-0">
+    <div>
+      <p class="text-base font-bold text-gray-900">Notifikasi</p>
+    </div>
+    <button onclick="toggleNotifPanel()"
+            class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-95 transition">
+      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Divider -->
+  <div class="h-px bg-gray-100 mx-5 flex-shrink-0"></div>
+
+  <!-- List -->
+  <div id="notifList" class="overflow-y-auto" style="max-height:55vh;">
+    <div class="flex flex-col items-center justify-center py-12 gap-3">
+      <svg class="w-10 h-10 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p class="text-sm text-gray-400">Tidak ada notifikasi</p>
+    </div>
+  </div>
+
+  <!-- Bottom safe area -->
+  <div class="h-2 flex-shrink-0"></div>
+
+</div>
+
 <!-- ================= DESKTOP TOPBAR ================= -->
-<div id="desktopTopbar" class="hidden fixed z-40 flex items-center justify-between gap-3 px-6"
+<div id="desktopTopbar" class="hidden fixed z-[65] flex items-center justify-between gap-3 px-6"
      style="top:0;left:200px;right:0;height:52px;background:rgba(240,242,240,0.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.06);">
   <!-- Greeting kiri -->
   <div>
-    <p id="desktopTopbarGreeting" class="text-sm font-semibold text-gray-700 leading-tight"></p>
+    <p id="desktopTopbarGreeting" class="text-sm font-semibold text-gray-700 leading-tight flex items-center"></p>
   </div>
   <!-- Profile kanan -->
-  <div id="desktopTopbarProfile" class="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition" onclick="openPageSaya()">
+  <div id="desktopTopbarProfile" class="hidden items-center gap-2.5 cursor-pointer hover:opacity-80 transition" onclick="openPageSaya()">
     <div class="text-right">
       <p id="desktopTopbarName" class="text-sm font-bold text-gray-900 leading-tight"></p>
       <p id="desktopTopbarRole" class="text-[10px] text-gray-400 leading-tight"></p>
@@ -124,8 +199,8 @@
          pt-16 pb-32 overflow-y-auto">
 
   <!-- GREETING -->
-  <div id="homeGreetingBlock" class="px-5 pt-3 pb-3">
-    <p class="text-xs text-gray-500" id="homeGreeting">Selamat datang 👋</p>
+  <div id="homeGreetingBlock" class="hidden">
+    <p class="text-xs text-gray-500 flex items-center" id="homeGreeting">Selamat datang</p>
     <h1 class="text-xl font-bold text-gray-900 mt-0" id="homeUsername">JPortal</h1>
   </div>
 
@@ -180,13 +255,14 @@
   <!-- QUICK ACTION -->
   <div class="px-5 mb-5">
     <!-- ══ QUICK ACTIONS — solid gradient bg + same icon family as navbar ══ -->
-    <div class="grid grid-cols-4 md:grid-cols-7 gap-x-1 gap-y-0.5 px-1">
+    <div class="grid grid-cols-4 md:grid-cols-8 gap-x-1 gap-y-0.5 px-1">
 
       <!-- Bayar IPL -->
       <button onclick="openSheet()"
               class="flex flex-col items-center gap-2 py-3 active:scale-95 transition">
-        <div class="rounded-2xl flex items-center justify-center shadow-sm"
+        <div class="relative rounded-2xl flex items-center justify-center shadow-sm"
              style="width:52px;height:52px;background:linear-gradient(135deg,#5B21B6,#7C3AED);">
+          <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-2.5 py-[3px] rounded-full leading-none z-10 shadow-sm whitespace-nowrap" style="background:#E11D48;letter-spacing:0.04em;">s.d. Tgl 5</span>
           <svg class="w-6 h-6" fill="white" stroke="none" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M16.169 12.3C16.04 12.387 15.895 12.428 15.751 12.428C15.51 12.428 15.273 12.312 15.128 12.097C14.335 10.917 13.419 9.819 12.75 9.194V16.086C12.75 16.5 12.414 16.836 12 16.836C11.586 16.836 11.25 16.5 11.25 16.086V9.187C10.588 9.81 9.669 10.912 8.872 12.097C8.642 12.44 8.177 12.532 7.831 12.3C7.488 12.07 7.397 11.603 7.628 11.26C8.455 10.029 10.538 7.164 12 7.164C13.462 7.164 15.545 10.029 16.372 11.26C16.604 11.603 16.512 12.07 16.169 12.3ZM12 2.25C4.802 2.25 2.25 4.802 2.25 12C2.25 19.198 4.802 21.75 12 21.75C19.198 21.75 21.75 19.198 21.75 12C21.75 4.802 19.198 2.25 12 2.25Z"/>
           </svg>
@@ -234,35 +310,38 @@
         <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Kontak</span>
       </button>
 
-      <!-- Mudik — same icon family as navHome in bottom nav -->
+      <!-- Mudik -->
       <button onclick="openFormMudik()"
               class="flex flex-col items-center gap-2 py-3 active:scale-95 transition">
-        <div class="rounded-2xl flex items-center justify-center shadow-sm"
+        <div class="relative rounded-2xl flex items-center justify-center shadow-sm"
              style="width:52px;height:52px;background:linear-gradient(135deg,#B45309,#F59E0B);">
+          <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-2.5 py-[3px] rounded-full leading-none z-10 shadow-sm" style="background:#00AA5B;letter-spacing:0.04em;">New</span>
           <svg class="w-6 h-6" fill="white" stroke="none" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M14.9081 16.885H9.09306C8.67906 16.885 8.34306 16.549 8.34306 16.135C8.34306 15.721 8.67906 15.385 9.09306 15.385H14.9081C15.3221 15.385 15.6581 15.721 15.6581 16.135C15.6581 16.549 15.3221 16.885 14.9081 16.885ZM19.2491 6.158C18.8861 5.838 18.4731 5.476 17.9811 5.021C17.7581 4.841 17.5141 4.635 17.2551 4.417C15.7951 3.186 13.7951 1.5 11.9721 1.5C10.1701 1.5 8.29906 3.092 6.79606 4.371C6.51806 4.607 6.25806 4.829 5.99306 5.044C5.52706 5.476 5.11406 5.839 4.75006 6.16C2.36306 8.261 1.91406 8.812 1.91406 13.713C1.91406 22.5 4.45506 22.5 12.0001 22.5C19.5441 22.5 22.0861 22.5 22.0861 13.713C22.0861 8.811 21.6371 8.26 19.2491 6.158Z"/>
           </svg>
         </div>
-        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Mudik</span>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Form Mudik</span>
       </button>
 
-      <!-- Renovasi — same icon family (edit/task icon) -->
+      <!-- Renovasi -->
       <button onclick="openFormRenovasi()"
               class="flex flex-col items-center gap-2 py-3 active:scale-95 transition">
-        <div class="rounded-2xl flex items-center justify-center shadow-sm"
+        <div class="relative rounded-2xl flex items-center justify-center shadow-sm"
              style="width:52px;height:52px;background:linear-gradient(135deg,#C2410C,#F97316);">
+          <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-2.5 py-[3px] rounded-full leading-none z-10 shadow-sm" style="background:#00AA5B;letter-spacing:0.04em;">New</span>
           <svg class="w-6 h-6" fill="white" stroke="none" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5949 12.6875H8.37489C7.96089 12.6875 7.62489 12.3515 7.62489 11.9375C7.62489 11.5235 7.96089 11.1875 8.37489 11.1875H15.5949C16.0089 11.1875 16.3449 11.5235 16.3449 11.9375C16.3449 12.3515 16.0089 12.6875 15.5949 12.6875ZM15.5949 16.4465H8.37489C7.96089 16.4465 7.62489 16.1105 7.62489 15.6965C7.62489 15.2825 7.96089 14.9465 8.37489 14.9465H15.5949C16.0089 14.9465 16.3449 15.2825 16.3449 15.6965C16.3449 16.1105 16.0089 16.4465 15.5949 16.4465ZM8.37489 7.42651H11.1299C11.5439 7.42651 11.8799 7.76251 11.8799 8.17651C11.8799 8.59051 11.5439 8.92651 11.1299 8.92651H8.37489C7.96089 8.92651 7.62489 8.59051 7.62489 8.17651C7.62489 7.76251 7.96089 7.42651 8.37489 7.42651ZM11.9999 2.24951C5.43489 2.24951 3.10889 4.80151 3.10889 12.0005C3.10889 19.1985 5.43489 21.7505 11.9999 21.7505C18.5639 21.7505 20.8909 19.1985 20.8909 12.0005C20.8909 4.80151 18.5639 2.24951 11.9999 2.24951Z"/>
           </svg>
         </div>
-        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Renovasi</span>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Form Renov</span>
       </button>
 
-      <!-- Pedoman — scroll to section -->
+      <!-- Pedoman -->
       <button onclick="scrollToPedoman()"
               class="flex flex-col items-center gap-2 py-3 active:scale-95 transition">
-        <div class="rounded-2xl flex items-center justify-center shadow-sm"
+        <div class="relative rounded-2xl flex items-center justify-center shadow-sm"
              style="width:52px;height:52px;background:linear-gradient(135deg,#5B21B6,#8B5CF6);">
+          <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-2.5 py-[3px] rounded-full leading-none z-10 shadow-sm" style="background:#00AA5B;letter-spacing:0.04em;">New</span>
           <svg class="w-6 h-6" fill="white" stroke="none" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M15.5949 12.6875H8.37489C7.96089 12.6875 7.62489 12.3515 7.62489 11.9375C7.62489 11.5235 7.96089 11.1875 8.37489 11.1875H15.5949C16.0089 11.1875 16.3449 11.5235 16.3449 11.9375C16.3449 12.3515 16.0089 12.6875 15.5949 12.6875ZM15.5949 16.4465H8.37489C7.96089 16.4465 7.62489 16.1105 7.62489 15.6965C7.62489 15.2825 7.96089 14.9465 8.37489 14.9465H15.5949C16.0089 14.9465 16.3449 15.2825 16.3449 15.6965C16.3449 16.1105 16.0089 16.4465 15.5949 16.4465ZM8.37489 7.42651H11.1299C11.5439 7.42651 11.8799 7.76251 11.8799 8.17651C11.8799 8.59051 11.5439 8.92651 11.1299 8.92651H8.37489C7.96089 8.92651 7.62489 8.59051 7.62489 8.17651C7.62489 7.76251 7.96089 7.42651 8.37489 7.42651ZM11.9999 2.24951C5.43489 2.24951 3.10889 4.80151 3.10889 12.0005C3.10889 19.1985 5.43489 21.7505 11.9999 21.7505C18.5639 21.7505 20.8909 19.1985 20.8909 12.0005C20.8909 4.80151 18.5639 2.24951 11.9999 2.24951Z"/>
           </svg>
@@ -270,6 +349,42 @@
         <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Pedoman</span>
       </button>
 
+      <!-- Lapor -->
+      <button onclick="openLaporPage()"
+              class="flex flex-col items-center gap-2 py-3 active:scale-95 transition">
+        <div class="relative rounded-2xl flex items-center justify-center shadow-sm"
+             style="width:52px;height:52px;background:linear-gradient(135deg,#0F766E,#14B8A6);">
+          <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] font-black px-2.5 py-[3px] rounded-full leading-none z-10 shadow-sm" style="background:#00AA5B;letter-spacing:0.04em;">New</span>
+          <svg class="w-6 h-6" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 9v4M12 17h.01"/>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          </svg>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-500 text-center leading-tight">Lapor</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ===== GREETING BANNER ===== -->
+  <div id="greetingBannerWrap" class="mx-5 mb-4 hidden">
+    <div class="relative rounded-2xl overflow-hidden" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+      <!-- Aurora layer -->
+      <div class="absolute inset-0" style="animation:auroraMove 8s ease-in-out infinite alternate;background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(139,92,246,0.6) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 20%,rgba(99,102,241,0.5) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 50% 80%,rgba(16,185,129,0.3) 0%,transparent 60%);"></div>
+      <!-- Dot pattern -->
+      <div class="absolute inset-0 opacity-[0.07]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:14px 14px;"></div>
+      <!-- slide viewport -->
+      <div style="overflow:hidden;position:relative;">
+        <div id="greetingBannerSlide" class="relative px-4 pt-4 pb-3">
+          <!-- live dot top-right -->
+          <span class="absolute top-3 right-3 w-2 h-2 rounded-full bg-green-400" style="animation:liveDot 1.8s ease-in-out infinite;"></span>
+          <!-- judul -->
+          <p id="greetingBannerTitle" class="text-sm font-bold text-white text-center leading-snug mb-1 pr-4"></p>
+          <!-- konten -->
+          <p id="greetingBannerText" class="text-xs font-normal text-white/80 text-center leading-relaxed"></p>
+        </div>
+      </div>
+      <div id="greetingBannerDots" class="flex gap-1 justify-center pb-2.5"></div>
     </div>
   </div>
 
@@ -524,6 +639,15 @@
       <p class="text-sm font-bold text-gray-900">Pedoman Jade Park Serpong 2</p>
       <p class="text-xs text-gray-400 mt-0.5">Tap untuk membuka dokumen</p>
     </div>
+    <!-- Login hint — shown when not logged in -->
+    <div id="pedomanLoginHint" class="hidden items-center gap-2.5 px-4 py-2.5 bg-amber-50 border-b border-amber-100">
+      <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <p class="text-xs text-amber-700 flex-1">Untuk membuka dokumen ini, silakan
+        <button onclick="openMePage()" class="font-semibold underline active:opacity-70">login dulu</button>.
+      </p>
+    </div>
     <div class="divide-y divide-gray-50">
       <a href="#" onclick="openPedomanViewer('1Lh5hBOSZWwY9mhFob9ESY-s0FnYZ8cEO');return false;"
          class="flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition">
@@ -607,6 +731,10 @@
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.9 2.1a9.307 9.307 0 0 1 2.2 0C14.4 2.3 15.7 3 16.7 3.9c1 1 1.7 2.2 1.9 3.5a9.307 9.307 0 0 1 0 2.2c-.2 1.3-.9 2.6-1.9 3.5-1 1-2.2 1.7-3.5 1.9a9.307 9.307 0 0 1-2.2 0C9.7 14.8 8.4 14.1 7.3 13c-1-1-1.7-2.2-1.9-3.5a9.307 9.307 0 0 1 0-2.2C5.6 6 6.3 4.7 7.3 3.9c1.1-1 2.3-1.6 3.6-1.8ZM12 13.5c-3.6 0-6.5 1.6-6.5 3.5v1.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V17c0-1.9-2.9-3.5-6.5-3.5Z"/></svg>
       <span>Admin</span>
     </button>
+    <button onclick="openLaporPage()" data-navid="navLapor" class="dsk-nav hidden">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      <span>Lapor</span>
+    </button>
     <button onclick="openPageSaya()" data-navid="navMe" class="dsk-nav">
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.0005 13.8307C8.08752 13.8307 4.65552 16.1327 4.65552 18.7557C4.65552 22.1307 10.1845 22.1307 12.0005 22.1307C13.8165 22.1307 19.3445 22.1307 19.3445 18.7337C19.3445 16.1217 15.9125 13.8307 12.0005 13.8307Z"/><path fill-rule="evenodd" d="M11.962 11.6423H11.993C14.688 11.6423 16.88 9.45026 16.88 6.75526C16.88 4.06126 14.688 1.86926 11.993 1.86926C9.29805 1.86926 7.10605 4.06126 7.10605 6.75326C7.09705 9.43926 9.27405 11.6323 11.962 11.6423Z"/></svg>
       <span>Me</span>
@@ -623,7 +751,9 @@
 
     <!-- Logout -->
     <button id="dskNavLogout" onclick="openLogoutConfirm()" class="dsk-nav dsk-nav-logout hidden">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 3.75A.75.75 0 0 0 6.75 4.5v15a.75.75 0 0 0 .75.75h4.5a.75.75 0 0 0 0-1.5H7.5V5.25h4.5a.75.75 0 0 0 0-1.5H7.5ZM16.72 9.22a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H10.5a.75.75 0 0 1 0-1.5h7.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z"/>
+      </svg>
       <span>Keluar</span>
     </button>
   </div>
@@ -690,6 +820,18 @@
         </svg>
       </div>
       <span class="nav-label text-[10px] font-semibold leading-none">Admin</span>
+    </button>
+
+    <!-- LAPOR — hidden from bottom nav, access via home grid shortcut -->
+    <button id="navLapor" onclick="openLaporPage()"
+            class="nav-app hidden flex-col items-center justify-center gap-1 flex-1 h-full active:opacity-70 transition-opacity">
+      <div class="nav-icon-wrap w-10 h-7 flex items-center justify-center rounded-2xl transition-all duration-200">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 9v4M12 17h.01"/>
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        </svg>
+      </div>
+      <span class="nav-label text-[10px] font-semibold leading-none">Lapor</span>
     </button>
 
     <!-- ME -->
@@ -967,44 +1109,55 @@
       <div id="detailPaymentCard" class="rounded-3xl bg-white shadow-sm p-5 space-y-6">
 
         <!-- TANGGAL BAYAR -->
-        <!-- TANGGAL BAYAR -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <label class="text-sm font-medium text-gray-700">Tanggal Transfer</label>
             <span id="tanggalTodayBadge"
-                  class="hidden text-[10px] font-semibold text-primary
-                         bg-primary/10 px-2 py-0.5 rounded-full">
-              ✓ Hari ini
+                  class="hidden items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Hari ini
             </span>
           </div>
 
+          <!-- Hidden native date input -->
+          <input
+            id="tanggal"
+            type="date"
+            class="sr-only"
+            data-required="true"
+            onchange="onTanggalChange()"
+          />
+
+          <!-- Custom display card -->
           <div id="tanggalContainer"
-               class="ios-date-container rounded-2xl border px-4 py-3
-                      transition-all duration-200
-                      bg-gray-50 border-gray-200">
+               onclick="document.getElementById('tanggal').showPicker ? document.getElementById('tanggal').showPicker() : document.getElementById('tanggal').click()"
+               class="rounded-2xl border px-4 py-3.5 cursor-pointer
+                      transition-all duration-200 select-none
+                      bg-gray-50 border-gray-200 active:scale-[0.99]">
 
-            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">
-              Tanggal Transfer ke Rekening
-            </p>
-
-            <div class="flex items-center gap-3">
-              <input
-                id="tanggal"
-                type="date"
-                class="app-date bg-transparent border-0 p-0 text-base font-bold text-gray-900 w-full focus:ring-0"
-                data-required="true"
-                onchange="onTanggalChange()"
-              />
-
-              <button
-                type="button"
-                onclick="setTodayDate()"
-                class="flex-shrink-0 px-3 py-1.5 rounded-xl
-                       bg-primary/10 text-primary
-                       text-xs font-semibold
-                       active:scale-95 transition whitespace-nowrap">
-                Hari ini
-              </button>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">
+                  Tanggal Transfer
+                </p>
+                <p id="tanggalDisplay"
+                   class="text-xl font-bold text-gray-800 tracking-tight">
+                  —
+                </p>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="3"/>
+                  <path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+                <button
+                  type="button"
+                  onclick="event.stopPropagation(); setTodayDate()"
+                  class="px-3 py-1 rounded-lg bg-primary/10 text-primary
+                         text-xs font-semibold active:scale-95 transition whitespace-nowrap">
+                  Hari ini
+                </button>
+              </div>
             </div>
 
           </div>
@@ -1340,7 +1493,6 @@
 
     <!-- HANDLE -->
     <div class="flex justify-center pt-3 pb-1">
-      <div class="w-8 h-1 bg-gray-200 rounded-full"></div>
     </div>
 
     <!-- HEADER -->
@@ -1419,7 +1571,6 @@
        class="bg-white w-full max-w-md rounded-t-3xl pb-safe">
 
     <!-- Handle -->
-    <div class="flex justify-center pt-3 pb-0"><div class="w-8 h-1 bg-gray-200 rounded-full"></div></div>
 
     <!-- Header -->
     <div class="px-5 pt-4 pb-3 flex items-start justify-between">
@@ -1662,7 +1813,6 @@
     <!-- HEADER -->
     <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
         <p class="text-base font-bold text-gray-900">Kelola Info Cluster</p>
       </div>
       <div class="flex gap-2">
@@ -1759,7 +1909,6 @@
 
     <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
         <p class="text-base font-bold text-gray-900">Kelola Fasilitas Umum</p>
       </div>
       <div class="flex gap-2">
@@ -1850,7 +1999,6 @@
   <div class="bg-white w-full max-w-lg mx-auto rounded-t-3xl flex flex-col" style="max-height:92vh;">
     <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
         <p class="text-base font-bold text-gray-900">Data Warga</p>
       </div>
       <div class="flex gap-2">
@@ -1919,7 +2067,6 @@
        style="max-height:90vh;">
     <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
       <div>
-        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3"></div>
         <p class="text-base font-bold text-gray-900">Kelola Greeting</p>
       </div>
       <div class="flex gap-2">
@@ -1938,6 +2085,33 @@
   </div>
 </div>
 
+<!-- ===== MODAL WARGA BARU (ADMIN) ===== -->
+<div id="wargaBaruCRUDModal"
+     class="fixed inset-0 z-[800] hidden bg-black/40 flex flex-col justify-end">
+  <div class="bg-white w-full max-w-lg mx-auto rounded-t-3xl flex flex-col"
+       style="max-height:90vh;">
+    <!-- HEADER -->
+    <div class="flex-shrink-0 px-5 pt-4 pb-3 border-b border-gray-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <p class="text-base font-bold text-gray-900">Pengajuan Warga Baru</p>
+            <span id="wargaBaruCRUDBadge"
+                  class="hidden text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">0</span>
+          </div>
+          <p class="text-xs text-gray-400 mt-0.5">Review & aktifkan akun warga</p>
+        </div>
+        <button onclick="closeWargaBaruCRUD()"
+                class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- LIST -->
+    <div id="wargaBaruCRUDList" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+  </div>
+</div>
+
 <!-- ===== MODAL FORM GREETING ===== -->
 <div id="greetingFormModal"
      class="fixed inset-0 z-[900] hidden bg-black/40 flex items-center justify-center px-4">
@@ -1952,9 +2126,12 @@
     <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
       <input type="hidden" id="greetingFormRow"/>
       <div>
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Teks Greeting <span class="text-gray-400 normal-case">(maks 35 karakter)</span></label>
-        <input id="greetingFormTeks" class="app-input mt-1" placeholder="contoh: Selamat Idul Fitri 1447 H 🕌" maxlength="35"/>
-        <p class="text-[10px] text-gray-400 mt-1">Emoji diperbolehkan</p>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Judul</label>
+        <input id="greetingFormJudul" class="app-input mt-1" placeholder="contoh: Pengumuman IPL"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Konten</label>
+        <textarea id="greetingFormTeks" class="app-input mt-1" rows="3" placeholder="Tulis pesan selengkapnya di sini..."></textarea>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
@@ -2466,18 +2643,12 @@
   <div class="flex-1 overflow-y-auto px-5 pb-24">
 
     <div id="dashboardLoading"
-        class="hidden items-center justify-center h-[40vh] text-sm text-gray-500">
-      <svg class="w-5 h-5 animate-spin mr-2"
-          viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10"
-                stroke="currentColor"
-                stroke-width="3"
-                opacity="0.3"/>
-        <path d="M12 2a10 10 0 0 1 10 10"
-              stroke="currentColor"
-              stroke-width="3"/>
+        class="hidden flex-col items-center justify-center h-[40vh] gap-3">
+      <svg class="w-7 h-7 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
       </svg>
-      Memuat data...
+      <p class="text-sm text-gray-400">Memuat data...</p>
     </div>
 
     <div id="dashboardError"
@@ -2487,8 +2658,61 @@
 
     <div id="dashboardList" class="space-y-3"></div>
 
+    <!-- WARGA BARU TAB CONTENT -->
+    <div id="wargaBaruContent" class="hidden">
+      <div id="wargaBaruLoading" class="hidden flex-col items-center justify-center h-[30vh] gap-3">
+        <svg class="w-7 h-7 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+        </svg>
+        <p class="text-sm text-gray-400">Memuat data...</p>
+      </div>
+      <div id="wargaBaruEmpty" class="hidden flex flex-col items-center justify-center h-[30vh] gap-3 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+          <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-500">Tidak ada pengajuan baru</p>
+          <p class="text-xs text-gray-400 mt-1">Semua pengajuan sudah diproses</p>
+        </div>
+      </div>
+      <div id="wargaBaruList" class="space-y-3"></div>
+    </div>
+
   </div>
 </section>
+
+<!-- MODAL KONFIRMASI AKTIFKAN WARGA -->
+<div id="modalAktifkanWarga"
+     class="fixed inset-0 z-[95] hidden flex items-center justify-center"
+     style="background:rgba(0,0,0,0.5);">
+  <div class="bg-white rounded-3xl mx-5 p-6 w-full max-w-sm shadow-2xl">
+    <div class="flex flex-col items-center text-center gap-3 mb-5">
+      <div class="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center">
+        <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-gray-900">Aktifkan Akun?</h3>
+        <p id="modalAktifkanDesc" class="text-sm text-gray-500 mt-1 leading-relaxed"></p>
+        <p class="text-xs text-gray-400 mt-2">WA notifikasi otomatis akan dikirim ke warga.</p>
+      </div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeModalAktifkan()"
+              class="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-600 active:bg-gray-50 transition">
+        Batal
+      </button>
+      <button id="btnDoAktifkan" onclick="doAktifkanWarga()"
+              class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-semibold active:scale-95 transition shadow-md shadow-primary/20 flex items-center justify-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+        Aktifkan
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ================= PAGE SAYA ================= -->
 <section id="pageSaya"
@@ -2558,6 +2782,15 @@
                      active:scale-95 transition shadow-md shadow-primary/20 mt-2">
         Masuk
       </button>
+
+      <!-- DAFTAR LINK -->
+      <p class="text-center text-sm text-gray-400 mt-4">
+        Belum punya akun?
+        <button onclick="openDaftarSheet()"
+                class="text-primary font-semibold active:opacity-70 transition">
+          Daftar di sini
+        </button>
+      </p>
     </div>
   </div>
 
@@ -2767,7 +3000,6 @@
     <div class="relative w-full bg-white rounded-t-3xl px-5 pt-5 pb-10 flex flex-col gap-4 shadow-2xl">
 
       <!-- PULL HANDLE -->
-      <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
 
       <!-- ICON + JUDUL -->
       <div class="flex flex-col items-center gap-3 py-2">
@@ -3039,15 +3271,13 @@
 
       </div>
 
-      <!-- SIGN OUT -->
+      <!-- SIGN OUT — hidden on desktop (sidebar already has Keluar) -->
       <button onclick="openLogoutConfirm()"
-              class="w-full py-4 rounded-2xl border border-red-100 bg-white
+              class="md:hidden w-full py-4 rounded-2xl border border-red-100 bg-white
                      text-red-500 font-semibold text-sm
                      active:scale-95 transition flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 3.75A.75.75 0 0 0 6.75 4.5v15a.75.75 0 0 0 .75.75h4.5a.75.75 0 0 0 0-1.5H7.5V5.25h4.5a.75.75 0 0 0 0-1.5H7.5ZM16.72 9.22a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H10.5a.75.75 0 0 1 0-1.5h7.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z"/>
         </svg>
         Keluar
       </button>
@@ -3056,6 +3286,292 @@
   </div>
 
 </section>
+
+<!-- ================= DAFTAR FORM SHEET ================= -->
+<div id="daftarFormSheet"
+     class="fixed inset-0 z-[90] hidden flex flex-col"
+     style="background:rgba(0,0,0,0.45);">
+
+  <!-- tap to close -->
+  <div class="flex-1" onclick="closeDaftarSheet()"></div>
+
+  <!-- FORM CARD -->
+  <div id="daftarFormCard"
+       class="bg-white rounded-t-3xl px-5 pt-5 pb-8 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+
+    <!-- HEADER -->
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <h2 class="text-base font-bold text-gray-900">Daftar Akun Warga</h2>
+        <p class="text-xs text-gray-400 mt-0.5">Isi data diri kamu untuk pengajuan akun</p>
+      </div>
+      <button onclick="closeDaftarSheet()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center active:scale-95 transition flex-shrink-0">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- FORM BODY -->
+    <div id="daftarFormBody" class="flex flex-col gap-4">
+
+      <!-- NAMA -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Nama Lengkap *</label>
+        <input id="daftarNama" type="text" placeholder="Contoh: Budi Santoso"
+               class="mt-1 w-full bg-transparent text-gray-900 text-base border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300">
+      </div>
+
+      <!-- BLOK -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Blok Rumah *</label>
+        <input id="daftarBlok" type="text" placeholder="Contoh: E28"
+               class="mt-1 w-full bg-transparent text-gray-900 text-base border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300">
+      </div>
+
+      <!-- EMAIL -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Email *</label>
+        <input id="daftarEmail" type="email" placeholder="emailkamu@gmail.com"
+               class="mt-1 w-full bg-transparent text-gray-900 text-base border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300">
+        <p class="text-[10px] text-gray-400 mt-1">Akan digunakan untuk login nanti</p>
+      </div>
+
+      <!-- NO WA -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">No. WhatsApp *</label>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-base font-semibold text-gray-500 flex-shrink-0">+62</span>
+          <input id="daftarWA" type="tel" placeholder="81234567890"
+                 class="flex-1 bg-transparent text-gray-900 text-base border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300">
+        </div>
+      </div>
+
+      <!-- STATUS -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-3">Status Hunian *</label>
+        <div class="flex gap-3">
+          <label class="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition">
+            <input type="radio" name="daftarStatus" value="Pemilik" class="accent-primary w-4 h-4">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">Pemilik</p>
+              <p class="text-[10px] text-gray-400">Owner rumah</p>
+            </div>
+          </label>
+          <label class="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-3 py-2.5 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition">
+            <input type="radio" name="daftarStatus" value="Penyewa" class="accent-primary w-4 h-4">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">Penyewa</p>
+              <p class="text-[10px] text-gray-400">Tenant / kontrak</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ERROR -->
+      <div id="daftarError" class="hidden rounded-2xl bg-red-50 border border-red-100 px-4 py-3 flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+        <span class="text-sm text-red-600 leading-snug"></span>
+      </div>
+
+      <!-- SUBMIT -->
+      <button id="daftarSubmitBtn" onclick="submitDaftarForm()"
+              class="w-full bg-primary text-white py-4 rounded-2xl font-semibold text-base active:scale-95 transition shadow-md shadow-primary/20">
+        Kirim Pengajuan
+      </button>
+
+      <p class="text-[11px] text-gray-400 text-center leading-relaxed">
+        Pengajuan kamu akan diverifikasi oleh pengurus.<br>
+        Notifikasi akan dikirim via WhatsApp.
+      </p>
+    </div>
+
+    <!-- SUCCESS BODY -->
+    <div id="daftarSuccessBody" class="hidden flex flex-col items-center gap-4 py-6 text-center">
+      <div class="w-16 h-16 rounded-3xl bg-green-50 flex items-center justify-center">
+        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-gray-900">Pengajuan Terkirim!</h3>
+        <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+          Pengajuan akun sedang kami review dan akan kami kabarin selanjutnya via WhatsApp.
+        </p>
+      </div>
+      <button onclick="closeDaftarSheet()"
+              class="w-full bg-primary text-white py-3.5 rounded-2xl font-semibold text-sm active:scale-95 transition mt-2">
+        Tutup
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= LAPOR PAGE ================= -->
+<section id="laporPage"
+    class="app-page fixed inset-x-0 top-0 bottom-[84px] z-[55] hidden
+           bg-softbg text-gray-900 flex flex-col overflow-hidden">
+
+  <!-- HEADER -->
+  <div class="bg-white px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+    <div>
+      <h1 class="text-base font-semibold text-gray-900">Lapor Masalah</h1>
+      <p class="text-xs text-gray-400 mt-0.5">Sampaikan keluhan ke Paguyuban JPS2</p>
+    </div>
+    <!-- Tombol buat laporan baru -->
+    <button id="laporNewBtn" onclick="openLaporForm()"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-xl active:opacity-80 transition">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Buat Laporan
+    </button>
+  </div>
+
+  <!-- TABS: Laporan Saya / Semua (admin) -->
+  <div class="flex bg-white border-b border-gray-100 px-5 gap-4 flex-shrink-0">
+    <button id="laporTabMine" onclick="switchLaporTab('mine')"
+            class="py-3 text-sm font-semibold border-b-2 border-primary text-primary transition-all">
+      Laporan Saya
+    </button>
+    <button id="laporTabAll" onclick="switchLaporTab('all')"
+            class="py-3 text-sm font-medium border-b-2 border-transparent text-gray-400 transition-all hidden">
+      Semua Laporan
+    </button>
+  </div>
+
+  <!-- LOGIN REQUIRED -->
+  <div id="laporLoginRequired" class="hidden flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">
+    <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
+      <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM12 14c-5.33 0-8 2.67-8 4v1h16v-1c0-1.33-2.67-4-8-4z"/>
+      </svg>
+    </div>
+    <p class="text-sm font-semibold text-gray-700">Login diperlukan</p>
+    <p class="text-xs text-gray-400">Silakan login terlebih dahulu untuk membuat atau melihat laporan.</p>
+    <button onclick="openPageSaya()" class="px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl active:opacity-80">Login</button>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div id="laporEmptyState" class="hidden flex-1 flex flex-col items-center justify-center gap-3 px-8 text-center">
+    <div class="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center">
+      <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+      </svg>
+    </div>
+    <p class="text-sm font-semibold text-gray-700">Belum ada laporan</p>
+    <p class="text-xs text-gray-400">Belum ada laporan yang dibuat. Klik "Buat Laporan" untuk memulai.</p>
+  </div>
+
+  <!-- LOADING -->
+  <div id="laporLoading" class="hidden" style="flex:1;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:40vh;">
+    <svg class="w-7 h-7 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+    </svg>
+    <p class="text-sm text-gray-400">Memuat laporan...</p>
+  </div>
+
+  <!-- LIST -->
+  <div id="laporList" class="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"></div>
+
+</section>
+
+<!-- ================= LAPOR FORM SHEET ================= -->
+<div id="laporFormSheet"
+     class="fixed inset-0 z-[80] hidden flex flex-col"
+     style="background:rgba(0,0,0,0.45);">
+  <div class="flex-1" onclick="closeLaporForm()"></div>
+  <div id="laporFormCard"
+       class="bg-white rounded-t-3xl flex flex-col overflow-hidden transition-transform duration-300"
+       style="max-height:92vh;">
+    <!-- Handle -->
+    <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+    </div>
+    <!-- Header -->
+    <div class="px-5 pb-3 flex items-center justify-between flex-shrink-0">
+      <h2 class="text-base font-bold text-gray-900">Buat Laporan Baru</h2>
+      <button onclick="closeLaporForm()" class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <!-- Form -->
+    <div class="overflow-y-auto flex-1 px-5 pb-6 flex flex-col gap-4">
+
+      <!-- Kategori -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-1.5">Kategori</label>
+        <select id="laporKategori"
+                class="w-full bg-transparent text-gray-900 text-sm border-0 p-0 focus:ring-0 focus:outline-none appearance-none cursor-pointer">
+          <option value="">-- Pilih Kategori --</option>
+          <option value="Kebersihan">🧹 Kebersihan</option>
+          <option value="Kerusakan">🔧 Kerusakan / Infrastruktur</option>
+          <option value="Fasilitas Umum">🏊 Fasilitas Umum</option>
+          <option value="Keamanan">🔒 Keamanan</option>
+          <option value="Sosial & Acara">🎉 Sosial & Acara</option>
+          <option value="Administrasi">📋 Administrasi</option>
+          <option value="Keuangan">💰 Keuangan</option>
+          <option value="Hukum">⚖️ Hukum</option>
+          <option value="Lainnya">📌 Lainnya</option>
+        </select>
+      </div>
+
+      <!-- Judul -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-1">Judul</label>
+        <input id="laporJudul" type="text" placeholder="Ringkasan masalah..."
+               class="w-full bg-transparent text-gray-900 text-sm border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300">
+      </div>
+
+      <!-- Deskripsi -->
+      <div class="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3">
+        <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-1">Deskripsi</label>
+        <textarea id="laporDeskripsi" placeholder="Jelaskan masalah secara detail..." rows="4"
+                  class="w-full bg-transparent text-gray-900 text-sm border-0 p-0 focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none"></textarea>
+      </div>
+
+      <!-- Anonymous toggle -->
+      <label class="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl cursor-pointer select-none">
+        <input id="laporAnonymous" type="checkbox" class="w-4 h-4 rounded accent-amber-500">
+        <div>
+          <p class="text-sm font-semibold text-amber-800">Kirim sebagai Anonim</p>
+          <p class="text-xs text-amber-600 mt-0.5">Nama & unit Anda tidak ditampilkan ke Paguyuban</p>
+        </div>
+      </label>
+
+      <div id="laporFormError" class="hidden rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600"></div>
+
+      <!-- Submit -->
+      <button id="laporSubmitBtn" onclick="submitLaporForm()"
+              class="w-full py-3.5 bg-primary text-white font-bold text-sm rounded-2xl active:opacity-80 transition flex items-center justify-center gap-2">
+        <svg id="laporSubmitIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        <div id="laporSubmitSpinner" class="hidden w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
+        <span id="laporSubmitLabel">Kirim Laporan</span>
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= LAPOR DETAIL MODAL ================= -->
+<div id="laporDetailModal"
+     class="fixed inset-0 z-[85] hidden flex items-end"
+     style="background:rgba(0,0,0,0.45);">
+  <div class="flex-1 absolute inset-0" onclick="closeLaporDetail()"></div>
+  <div id="laporDetailCard"
+       class="relative w-full bg-white rounded-t-3xl flex flex-col overflow-hidden"
+       style="max-height:85vh;">
+    <div class="px-5 pb-3 flex items-center justify-between flex-shrink-0">
+      <h2 class="text-base font-bold text-gray-900">Detail Laporan</h2>
+      <button onclick="closeLaporDetail()" class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="laporDetailBody" class="overflow-y-auto flex-1 px-5 pb-6 flex flex-col gap-4"></div>
+  </div>
+</div>
 
 <!-- ================= EXPLORE PAGE ================= -->
 <section id="explorePage"
@@ -3073,99 +3589,286 @@
   <!-- SCROLL AREA -->
   <div class="flex-1 overflow-y-auto px-5 py-5 space-y-3 pb-24">
 
-    <!-- ADMIN ONLY: KELOLA INFO & FASUM -->
-    <div id="adminExploreSection" class="space-y-3">
+    <!-- ADMIN ONLY SECTION -->
+    <div id="adminExploreSection" class="space-y-4">
 
-      <!-- KELOLA INFO CLUSTER -->
-      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-50">
-          <div>
-            <p class="text-sm font-bold text-gray-900">Kelola Info Cluster</p>
-            <p class="text-xs text-gray-400 mt-0.5">Tambah, edit, hapus pengumuman</p>
-          </div>
-          <button onclick="openInfoCRUD()"
-                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white
-                         text-xs font-semibold active:scale-95 transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Kelola
-          </button>
-        </div>
-        <div id="adminInfoPreviewList" class="px-4 py-3 space-y-2">
-          <div class="h-8 rounded-xl bg-gray-100 animate-pulse"></div>
-        </div>
-      </div>
+      <!-- ── SCORECARDS ROW ── -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 
-      <!-- KELOLA DATA WARGA -->
-      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-50">
-          <div>
-            <p class="text-sm font-bold text-gray-900">Data Warga</p>
-            <p class="text-xs text-gray-400 mt-0.5">Kelola daftar warga & blok</p>
-          </div>
-          <button onclick="openDataWargaCRUD()"
-                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white
-                         text-xs font-semibold active:scale-95 transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <!-- Warga -->
+        <div onclick="openDataWargaCRUD()"
+             class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#EBF5FB;">
+            <svg class="w-4 h-4" fill="none" stroke="#2980B9" stroke-width="1.8" viewBox="0 0 24 24">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
-            Kelola
-          </button>
-        </div>
-        <div id="adminWargaPreviewList" class="px-4 py-3 space-y-2">
-          <div class="h-8 rounded-xl bg-gray-100 animate-pulse"></div>
-        </div>
-      </div>
-
-      <!-- KELOLA GREETING -->
-      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-50">
-          <div>
-            <p class="text-sm font-bold text-gray-900">Kelola Greeting</p>
-            <p class="text-xs text-gray-400 mt-0.5">Pesan sambutan berdasarkan tanggal</p>
           </div>
-          <button onclick="openGreetingCRUD()"
-                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white
-                         text-xs font-semibold active:scale-95 transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Kelola
-          </button>
+          <p id="scAdminWarga" class="text-2xl font-black text-gray-900 leading-none">—</p>
+          <p class="text-xs text-gray-400 font-medium">Warga Terdaftar</p>
         </div>
-        <div id="adminGreetingPreviewList" class="px-4 py-3 space-y-2">
-          <div class="h-8 rounded-xl bg-gray-100 animate-pulse"></div>
-        </div>
-      </div>
 
-      <!-- KELOLA FASUM -->
-      <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-50">
-          <div>
-            <p class="text-sm font-bold text-gray-900">Kelola Fasilitas Umum</p>
-            <p class="text-xs text-gray-400 mt-0.5">Update status & data fasum</p>
+        <!-- Pengaduan Masuk -->
+        <div onclick="openAdminPengaduan()"
+             class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#FDEDEC;">
+            <svg class="w-4 h-4" fill="none" stroke="#E74C3C" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
           </div>
-          <button onclick="openFasumCRUD()"
-                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white
-                         text-xs font-semibold active:scale-95 transition">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          <div class="flex items-end gap-1.5">
+            <p id="scAdminLaporMasuk" class="text-2xl font-black text-gray-900 leading-none">—</p>
+            <p id="scAdminLaporTotal" class="text-xs text-gray-400 mb-0.5">/ —</p>
+          </div>
+          <p class="text-xs text-gray-400 font-medium">Pengaduan Masuk</p>
+        </div>
+
+        <!-- Warga Pending -->
+        <div onclick="openWargaBaruCRUD()"
+             class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#FEF9E7;">
+            <svg class="w-4 h-4" fill="none" stroke="#F39C12" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              <path d="M12 11v4M12 19h.01"/>
             </svg>
-            Kelola
-          </button>
+          </div>
+          <p id="scAdminWargaBaru" class="text-2xl font-black text-gray-900 leading-none">—</p>
+          <p class="text-xs text-gray-400 font-medium">Pendaftar Baru</p>
         </div>
-        <div id="adminFasumPreviewList" class="px-4 py-3 space-y-2">
-          <div class="h-8 rounded-xl bg-gray-100 animate-pulse"></div>
+
+        <!-- Fasum Bermasalah -->
+        <div onclick="openFasumCRUD()"
+             class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#EAFAF1;">
+            <svg class="w-4 h-4" fill="none" stroke="#27AE60" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div class="flex items-end gap-1.5">
+            <p id="scAdminFasumIssue" class="text-2xl font-black text-gray-900 leading-none">—</p>
+            <p id="scAdminFasumTotal" class="text-xs text-gray-400 mb-0.5">/ —</p>
+          </div>
+          <p class="text-xs text-gray-400 font-medium">Fasum Bermasalah</p>
         </div>
+
       </div>
 
+      <!-- ── ACTION CARDS GRID ── -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+        <!-- INFO CLUSTER -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <path d="m22 6-10 7L2 6"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Info Cluster</p>
+                <p class="text-xs text-gray-400">Pengumuman warga</p>
+              </div>
+            </div>
+            <button onclick="openInfoCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminInfoPreviewList" class="px-4 pb-3 space-y-1 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- DATA WARGA -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Data Warga</p>
+                <p class="text-xs text-gray-400">Daftar warga & blok</p>
+              </div>
+            </div>
+            <button onclick="openDataWargaCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminWargaPreviewList" class="px-4 pb-3 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- GREETING -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Greeting</p>
+                <p class="text-xs text-gray-400">Pesan sambutan tanggal</p>
+              </div>
+            </div>
+            <button onclick="openGreetingCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminGreetingPreviewList" class="px-4 pb-3 space-y-1 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- FASUM -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Fasilitas Umum</p>
+                <p class="text-xs text-gray-400">Status fasum cluster</p>
+              </div>
+            </div>
+            <button onclick="openFasumCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminFasumPreviewList" class="px-4 pb-3 space-y-1 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- PENGADUAN -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+              </div>
+              <div class="flex items-center gap-2">
+                <div>
+                  <p class="text-sm font-bold text-gray-900">Pengaduan</p>
+                  <p class="text-xs text-gray-400">Laporan masalah warga</p>
+                </div>
+                <span id="adminLaporBadge"
+                      class="hidden text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600"></span>
+              </div>
+            </div>
+            <button onclick="openAdminPengaduan()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminLaporPreviewList" class="px-4 pb-3 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- WARGA BARU -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  <path d="M12 14v3M10.5 19.5h3"/>
+                </svg>
+              </div>
+              <div class="flex items-center gap-2">
+                <div>
+                  <p class="text-sm font-bold text-gray-900">Pendaftar Baru</p>
+                  <p class="text-xs text-gray-400">Aktivasi akun warga</p>
+                </div>
+                <span id="adminWargaBadge"
+                      class="hidden text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700"></span>
+              </div>
+            </div>
+            <button onclick="openWargaBaruCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminWargaBaruPreviewList" class="px-4 pb-3 border-t border-gray-50 pt-2"></div>
+        </div>
+
+      </div>
     </div>
-    
+
   </div>
 </section>
+
+<!-- ===== MODAL ADMIN PENGADUAN ===== -->
+<div id="adminPengaduanModal"
+     class="fixed inset-0 z-[800] hidden bg-black/40 flex flex-col justify-end">
+  <div class="bg-white w-full max-w-lg mx-auto rounded-t-3xl flex flex-col"
+       style="max-height:92vh;">
+
+    <!-- HEADER -->
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-base font-bold text-gray-900">Pengaduan Warga</p>
+          <p class="text-xs text-gray-400 mt-0.5">Tap laporan untuk update status</p>
+        </div>
+        <button onclick="closeAdminPengaduan()"
+                class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <!-- STATUS FILTER TABS -->
+      <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+        <button id="apTab_all"      onclick="switchAdminLaporTab('all')"
+                class="admin-lapor-tab active flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-800 text-white transition">
+          Semua
+        </button>
+        <button id="apTab_masuk"    onclick="switchAdminLaporTab('Masuk')"
+                class="admin-lapor-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-500 transition">
+          <span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span>Masuk
+        </button>
+        <button id="apTab_diproses" onclick="switchAdminLaporTab('Diproses')"
+                class="admin-lapor-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-500 transition">
+          <span class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></span>Diproses
+        </button>
+        <button id="apTab_selesai"  onclick="switchAdminLaporTab('Selesai')"
+                class="admin-lapor-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-500 transition">
+          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>Selesai
+        </button>
+        <button id="apTab_ditolak"  onclick="switchAdminLaporTab('Ditolak')"
+                class="admin-lapor-tab flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-500 transition">
+          <span class="w-2 h-2 rounded-full bg-gray-500 flex-shrink-0"></span>Ditolak
+        </button>
+      </div>
+    </div>
+
+    <!-- LIST -->
+    <div id="adminPengaduanList" class="flex-1 overflow-y-auto px-4 py-3 space-y-3"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL DETAIL UPDATE PENGADUAN (ADMIN) ===== -->
+<div id="adminPengaduanDetailModal"
+     class="fixed inset-0 z-[810] hidden bg-black/50 flex items-end justify-center">
+  <div class="bg-white w-full max-w-lg rounded-t-3xl flex flex-col"
+       style="max-height:88vh;">
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <p class="text-base font-bold text-gray-900">Detail Pengaduan</p>
+      <button onclick="closeAdminPengaduanDetail()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="adminPengaduanDetailBody" class="flex-1 overflow-y-auto px-5 py-4 space-y-4"></div>
+  </div>
+</div>
 
 <!-- ================= FORM MUDIK ================= -->
 <section id="formMudik"
@@ -3897,7 +4600,6 @@
   <div class="relative bg-white rounded-t-3xl shadow-2xl px-5 pt-5 pb-6 mx-0"
        style="box-shadow:0 -8px 32px rgba(0,0,0,0.12);">
     <!-- Handle bar -->
-    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
     <div class="flex items-center gap-4 mb-4">
       <img src="/icons/icon-192.png" class="w-14 h-14 rounded-2xl shadow-sm flex-shrink-0" alt="JPortal">
       <div class="flex-1 min-w-0">
@@ -3925,7 +4627,6 @@
   <div class="absolute inset-0 -top-full" onclick="pwaIOSDismiss()"></div>
   <div class="relative bg-white rounded-t-3xl shadow-2xl px-5 pt-5 pb-6"
        style="box-shadow:0 -8px 32px rgba(0,0,0,0.12);">
-    <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
     <div class="flex items-center gap-4 mb-4">
       <img src="/icons/icon-192.png" class="w-14 h-14 rounded-2xl shadow-sm flex-shrink-0" alt="JPortal">
       <div class="flex-1 min-w-0">
