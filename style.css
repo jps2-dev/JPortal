@@ -116,13 +116,8 @@ html, body {
     }
 
     /* ===== SECURITY BUTTON ANIMATION ===== */
-    @keyframes securityPulse {
-      0%, 100% { box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3); }
-      50% { box-shadow: 0 4px 20px rgba(67, 160, 71, 0.5); }
-    }
-
     .security-btn {
-      animation: securityPulse 2s ease-in-out infinite;
+      animation: sosHeartbeat 1.4s ease-in-out infinite;
     }
 
     /* =========================================
@@ -1260,7 +1255,6 @@ html, body {
       right: 20px !important;
       bottom: 24px !important;
       left: auto !important;
-      transform: none !important;
     }
 
     /* ════════════════════════════════════════════
@@ -1570,11 +1564,9 @@ html, body {
     }
   }
 
-  /* ===== FAB BAYAR ANIMATION — single clean glow ===== */
-  /* ===== SOS BUTTON — static, no animation ===== */
+  /* ===== SOS BUTTON — heartbeat animation ===== */
   .security-btn {
-    animation: none !important;
-    box-shadow: 0 4px 14px rgba(229,57,53,0.45);
+    animation: sosHeartbeat 1.4s ease-in-out infinite !important;
   }
 
   /* ===== PEDOMAN / KAS IPL VIEWER ===== */
@@ -1622,6 +1614,13 @@ html, body {
 }
 
 /* ===== GREETING BANNER ANIMATIONS ===== */
+@keyframes sosHeartbeat {
+  0%, 100% { transform: scale(1);    box-shadow: 0 4px 14px rgba(229,57,53,0.45); }
+  14%      { transform: scale(1.18); box-shadow: 0 6px 20px rgba(229,57,53,0.7);  }
+  28%      { transform: scale(1);    box-shadow: 0 4px 14px rgba(229,57,53,0.45); }
+  42%      { transform: scale(1.12); box-shadow: 0 5px 18px rgba(229,57,53,0.6);  }
+  70%      { transform: scale(1);    box-shadow: 0 4px 14px rgba(229,57,53,0.45); }
+}
 @keyframes liveDot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.4; transform: scale(0.7); }

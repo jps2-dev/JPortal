@@ -39,6 +39,10 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 
 
+<style>
+@keyframes sosHeartbeat{0%,100%{transform:scale(1);box-shadow:0 4px 14px rgba(229,57,53,.45)}14%{transform:scale(1.2);box-shadow:0 6px 22px rgba(229,57,53,.75)}28%{transform:scale(1);box-shadow:0 4px 14px rgba(229,57,53,.45)}42%{transform:scale(1.13);box-shadow:0 5px 18px rgba(229,57,53,.6)}70%{transform:scale(1);box-shadow:0 4px 14px rgba(229,57,53,.45)}}
+#securityBtn{animation:sosHeartbeat 1.4s ease-in-out infinite!important;}
+</style>
 </head>
 
 <body class="bg-softbg text-gray-900 md:bg-softbg">
@@ -4523,14 +4527,13 @@
         onclick="toggleSecurityModal()"
         class="security-btn fixed bottom-24 right-4 md:bottom-20 md:right-6 z-50
                rounded-2xl shadow-lg
-               flex flex-col items-center justify-center gap-0.5
-               hover:scale-105 active:scale-95
-               transition-all duration-200"
+               flex flex-col items-center justify-center gap-0.5"
         style="background: linear-gradient(135deg, #e53935, #b71c1c);
                box-shadow: 0 4px 14px rgba(229,57,53,0.45);
                width: 52px; height: 52px;
                border: 1.5px solid rgba(255,255,255,0.25);
-               bottom: calc(96px + env(safe-area-inset-bottom, 0px));">
+               bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+               animation: sosHeartbeat 1.4s ease-in-out infinite;">
   <svg class="w-5 h-5" fill="white" viewBox="0 0 24 24">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M14.6108 1.75606C14.1978 1.70406 13.8278 2.00706 13.7828 2.41806C13.7368 2.83006 14.0338 3.20006 14.4448 3.24606C17.8218 3.62106 20.4438 6.24106 20.8228 9.61706C20.8658 10.0001 21.1898 10.2831 21.5668 10.2831C21.5948 10.2831 21.6238 10.2811 21.6518 10.2781C22.0628 10.2331 22.3588 9.86106 22.3128 9.44906C21.8558 5.37306 18.6888 2.20906 14.6108 1.75606Z"/>
     <path fill-rule="evenodd" clip-rule="evenodd" d="M17.2915 9.68765C17.3615 10.0457 17.6755 10.2937 18.0265 10.2937C18.0745 10.2937 18.1225 10.2897 18.1715 10.2807C18.5775 10.2017 18.8435 9.80665 18.7645 9.40065C18.3575 7.31865 16.7505 5.71165 14.6705 5.30765C14.2735 5.22865 13.8705 5.49465 13.7915 5.90165C13.7125 6.30765 13.9785 6.70165 14.3855 6.78065C15.8615 7.06765 17.0035 8.20865 17.2915 9.68765Z"/>
