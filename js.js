@@ -5462,10 +5462,8 @@ function updateHomeGreeting() {
     }
   } else if (currentUser && currentUser.email) {
     nameEl.innerText = currentUser.email.split('@')[0];
-    if (tu) tu.textContent = currentUser.email.split('@')[0];
   } else {
     nameEl.innerText = 'Warga JPS2';
-    if (tu) tu.textContent = 'Warga JPS2';
   }
 }
 
