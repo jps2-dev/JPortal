@@ -153,12 +153,18 @@
     <div>
       <p class="text-base font-bold text-gray-900">Notifikasi</p>
     </div>
-    <button onclick="toggleNotifPanel()"
-            class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-95 transition">
-      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12"/>
-      </svg>
-    </button>
+    <div class="flex items-center gap-2">
+      <button id="notifClearBtn" onclick="clearAllNotifs_()"
+              class="hidden text-xs font-semibold text-red-500 px-2.5 py-1.5 rounded-lg hover:bg-red-50 active:scale-95 transition">
+        Hapus semua
+      </button>
+      <button onclick="toggleNotifPanel()"
+              class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-95 transition">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Divider -->
@@ -181,11 +187,39 @@
 
 <!-- ================= DESKTOP TOPBAR ================= -->
 <div id="desktopTopbar" class="hidden fixed z-[65] flex items-center justify-between gap-3 px-6"
-     style="top:0;left:200px;right:0;height:52px;background:rgba(240,242,240,0.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.06);">
+     style="top:0;left:230px;right:0;height:52px;background:rgba(240,242,240,0.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.06);">
   <!-- Greeting kiri -->
   <div>
     <p id="desktopTopbarGreeting" class="text-sm font-semibold text-gray-700 leading-tight flex items-center"></p>
   </div>
+  <!-- Kanan: kontrol + profile -->
+  <div class="flex items-center gap-2.5">
+
+    <!-- DARK MODE TOGGLE (desktop) -->
+    <button id="dskDarkModeBtn" onclick="toggleDarkMode()"
+            class="hidden w-9 h-9 flex items-center justify-center rounded-2xl bg-gray-100 hover:bg-gray-200 active:scale-95 transition"
+            aria-label="Toggle dark mode">
+      <svg id="dskIconSun" class="w-5 h-5 text-gray-600 hidden" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path stroke-linecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <svg id="dskIconMoon" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+
+    <!-- BELL NOTIFIKASI (desktop) -->
+    <button id="dskNotifBellBtn" onclick="toggleNotifPanel()"
+            class="hidden relative w-9 h-9 flex items-center justify-center rounded-2xl bg-gray-100 hover:bg-gray-200 active:scale-95 transition">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span id="dskNotifBadge"
+            class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] items-center justify-center rounded-full text-[9px] font-black text-white px-1 leading-none"
+            style="background:#E11D48;"></span>
+    </button>
+
   <!-- Profile kanan -->
   <div id="desktopTopbarProfile" class="hidden items-center gap-2.5 cursor-pointer hover:opacity-80 transition" onclick="openPageSaya()">
     <div class="text-right">
@@ -193,6 +227,7 @@
       <p id="desktopTopbarRole" class="text-[10px] text-gray-400 leading-tight"></p>
     </div>
     <div id="desktopTopbarAvatar" class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm select-none flex-shrink-0"></div>
+  </div>
   </div>
 </div>
 
@@ -372,23 +407,18 @@
 
   <!-- ===== GREETING BANNER ===== -->
   <div id="greetingBannerWrap" class="mx-5 mb-4 hidden">
-    <div class="relative rounded-2xl overflow-hidden" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
-      <!-- Aurora layer -->
-      <div class="absolute inset-0" style="animation:auroraMove 8s ease-in-out infinite alternate;background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(139,92,246,0.6) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 80% 20%,rgba(99,102,241,0.5) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 50% 80%,rgba(16,185,129,0.3) 0%,transparent 60%);"></div>
-      <!-- Dot pattern -->
-      <div class="absolute inset-0 opacity-[0.07]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:14px 14px;"></div>
-      <!-- slide viewport -->
-      <div style="overflow:hidden;position:relative;">
-        <div id="greetingBannerSlide" class="relative px-4 pt-4 pb-3">
-          <!-- live dot top-right -->
-          <span class="absolute top-3 right-3 w-2 h-2 rounded-full bg-green-400" style="animation:liveDot 1.8s ease-in-out infinite;"></span>
-          <!-- judul -->
-          <p id="greetingBannerTitle" class="text-sm font-bold text-white text-center leading-snug mb-1 pr-4"></p>
-          <!-- konten -->
-          <p id="greetingBannerText" class="text-xs font-normal text-white/80 text-center leading-relaxed"></p>
-        </div>
+    <div id="greetingBannerInner" class="relative rounded-2xl overflow-hidden select-none" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+      <!-- Dot texture overlay (di atas slide, tidak menangkap klik) -->
+      <div class="absolute inset-0 z-[2] pointer-events-none opacity-[0.07]" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:14px 14px;"></div>
+      <!-- live dot top-right -->
+      <span class="absolute top-3 right-3 w-2 h-2 rounded-full bg-green-400 z-[3] pointer-events-none" style="animation:liveDot 1.8s ease-in-out infinite;"></span>
+      <!-- slide viewport (draggable) -->
+      <div id="greetingBannerViewport" style="overflow:hidden;position:relative;z-index:1;touch-action:pan-y;cursor:grab;">
+        <!-- track: semua slide berjajar horizontal, digeser via translateX -->
+        <div id="greetingBannerTrack" style="display:flex;will-change:transform;"></div>
       </div>
-      <div id="greetingBannerDots" class="flex gap-1 justify-center pb-2.5"></div>
+      <!-- dots overlay di bawah -->
+      <div id="greetingBannerDots" class="absolute bottom-2 left-0 right-0 flex gap-1 justify-center z-[3] pointer-events-none"></div>
     </div>
   </div>
 
@@ -727,7 +757,7 @@
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M14.9081 16.885H9.09306C8.67906 16.885 8.34306 16.549 8.34306 16.135C8.34306 15.721 8.67906 15.385 9.09306 15.385H14.9081C15.3221 15.385 15.6581 15.721 15.6581 16.135C15.6581 16.549 15.3221 16.885 14.9081 16.885ZM19.2491 6.158C18.8861 5.838 18.4731 5.476 17.9811 5.021C17.7581 4.841 17.5141 4.635 17.2551 4.417C15.7951 3.186 13.7951 1.5 11.9721 1.5C10.1701 1.5 8.29906 3.092 6.79606 4.371C6.51806 4.607 6.25806 4.829 5.99306 5.044C5.52706 5.476 5.11406 5.839 4.75006 6.16C2.36306 8.261 1.91406 8.812 1.91406 13.713C1.91406 22.5 4.45506 22.5 12.0001 22.5C19.5441 22.5 22.0861 22.5 22.0861 13.713C22.0861 8.811 21.6371 8.26 19.2491 6.158Z"/></svg>
       <span>Home</span>
     </button>
-    <button onclick="openDashboard()" data-navid="navActivity" class="dsk-nav">
+    <button onclick="openHistory()" data-navid="navActivity" class="dsk-nav">
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.5949 12.6875H8.37489C7.96089 12.6875 7.62489 12.3515 7.62489 11.9375C7.62489 11.5235 7.96089 11.1875 8.37489 11.1875H15.5949C16.0089 11.1875 16.3449 11.5235 16.3449 11.9375C16.3449 12.3515 16.0089 12.6875 15.5949 12.6875ZM15.5949 16.4465H8.37489C7.96089 16.4465 7.62489 16.1105 7.62489 15.6965C7.62489 15.2825 7.96089 14.9465 8.37489 14.9465H15.5949C16.0089 14.9465 16.3449 15.2825 16.3449 15.6965C16.3449 16.1105 16.0089 16.4465 15.5949 16.4465ZM8.37489 7.42651H11.1299C11.5439 7.42651 11.8799 7.76251 11.8799 8.17651C11.8799 8.59051 11.5439 8.92651 11.1299 8.92651H8.37489C7.96089 8.92651 7.62489 8.59051 7.62489 8.17651C7.62489 7.76251 7.96089 7.42651 8.37489 7.42651ZM11.9999 2.24951C5.43489 2.24951 3.10889 4.80151 3.10889 12.0005C3.10889 19.1985 5.43489 21.7505 11.9999 21.7505C18.5639 21.7505 20.8909 19.1985 20.8909 12.0005C20.8909 4.80151 18.5639 2.24951 11.9999 2.24951Z"/></svg>
       <span>History</span>
     </button>
@@ -762,13 +792,14 @@
     </button>
   </div>
 
-  <!-- Footer -->
-  <div class="desktop-sidebar-footer">
-    <p class="text-gray-400" style="font-size:10px;">© 2026 · All rights reserved</p>
-    <p class="text-gray-400" style="font-size:10px;">Made with <span style="color:#e53935;">♥</span> for Jade Park Serpong 2</p>
-  </div>
-
 </aside>
+
+<!-- ===== DESKTOP FOOTER BAR (bawah, span area konten) ===== -->
+<footer id="desktopFooter" class="hidden">
+  <span>© 2026 · All rights reserved</span>
+  <span class="footer-dot">·</span>
+  <span>Made with <span style="color:#e53935;">♥</span> for Jade Park Serpong 2</span>
+</footer>
 
 <!-- ================= BOTTOM NAV ================= -->
 <nav id="bottomNav"
@@ -792,7 +823,7 @@
     </button>
 
     <!-- HISTORY -->
-    <button id="navActivity" onclick="openDashboard()"
+    <button id="navActivity" onclick="openHistory()"
             class="nav-app flex flex-col items-center justify-center gap-1 flex-1 h-full active:opacity-70 transition-opacity"
             style="touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
       <div class="nav-icon-wrap w-10 h-7 flex items-center justify-center rounded-2xl transition-all duration-200">
@@ -2050,8 +2081,15 @@
         <input id="dataWargaFormHp" class="app-input mt-1" placeholder="628xxx" type="tel"/>
       </div>
       <div>
-        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Email</label>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Email <span class="text-gray-300 normal-case font-normal">(untuk login)</span></label>
         <input id="dataWargaFormEmail" class="app-input mt-1" placeholder="email@gmail.com" type="email"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Role / Akses</label>
+        <select id="dataWargaFormRole" class="app-input mt-1">
+          <option value="warga">Warga</option>
+          <option value="admin">Admin</option>
+        </select>
       </div>
     </div>
     <div class="px-5 pb-5 pt-2 border-t border-gray-100 flex-shrink-0">
@@ -2086,6 +2124,95 @@
       </div>
     </div>
     <div id="greetingCRUDList" class="flex-1 overflow-y-auto px-5 py-3 space-y-2"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL CRUD LAPORAN KAS IPL ===== -->
+<div id="kasIplCRUDModal"
+     class="fixed inset-0 z-[800] hidden bg-black/40 flex flex-col justify-end">
+  <div class="bg-white w-full max-w-lg mx-auto rounded-t-3xl flex flex-col"
+       style="max-height:90vh;">
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <div>
+        <p class="text-base font-bold text-gray-900">Laporan Kas IPL</p>
+        <p class="text-xs text-gray-400 mt-0.5">Kelola laporan keuangan dari satu app</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="triggerKasIplUpload()" id="kasIplUploadBtn"
+                class="flex items-center gap-1 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold active:scale-95 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload
+        </button>
+        <button onclick="closeKasIplCRUD()"
+                class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- breadcrumb navigasi folder -->
+    <div id="kasIplBreadcrumb" class="flex-shrink-0 px-5 py-2.5 border-b border-gray-50 flex items-center gap-1 flex-wrap text-xs"></div>
+    <!-- hidden file input -->
+    <input type="file" id="kasIplFileInput" accept="application/pdf,image/*" class="hidden" onchange="handleKasIplUpload(this)"/>
+    <!-- progress bar saat upload -->
+    <div id="kasIplUploadProgress" class="hidden px-5 pt-3">
+      <div class="flex items-center gap-2 text-xs text-gray-500 mb-1.5">
+        <svg class="w-4 h-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3"/></svg>
+        <span id="kasIplUploadLabel">Mengupload...</span>
+      </div>
+    </div>
+    <div id="kasIplCRUDList" class="flex-1 overflow-y-auto px-5 py-3 space-y-2"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL BROADCAST PENGUMUMAN ===== -->
+<div id="broadcastModal"
+     class="fixed inset-0 z-[900] hidden bg-black/40 flex items-center justify-center px-4">
+  <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+      <div>
+        <p class="text-base font-bold text-gray-900">Kirim Pengumuman</p>
+        <p class="text-xs text-gray-400 mt-0.5">Notifikasi ke semua warga</p>
+      </div>
+      <button onclick="closeBroadcast()" class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Judul <span class="text-red-400">*</span></label>
+        <input id="broadcastTitle" class="app-input mt-1" placeholder="contoh: Kerja bakti Minggu ini" maxlength="80"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Isi pesan</label>
+        <textarea id="broadcastBody" class="app-input mt-1" rows="3" placeholder="Tulis detail pengumuman..." maxlength="300"></textarea>
+      </div>
+      <p class="text-[11px] text-gray-400">Akan muncul di lonceng notifikasi semua warga.</p>
+    </div>
+    <div class="px-5 pb-5 pt-2 border-t border-gray-100 flex-shrink-0">
+      <button id="broadcastSendBtn" onclick="sendBroadcast()"
+              class="w-full py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm active:scale-95 transition shadow-md shadow-primary/20">
+        Kirim ke Semua Warga
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DETAIL STATUS RUMAH ===== -->
+<div id="summaryDetailModal"
+     class="fixed inset-0 z-[800] hidden bg-black/40 flex flex-col justify-end">
+  <div class="bg-white w-full max-w-lg mx-auto rounded-t-3xl flex flex-col"
+       style="max-height:85vh;">
+    <div class="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <div>
+        <p id="summaryDetailTitle" class="text-base font-bold text-gray-900">Detail</p>
+        <p id="summaryDetailCount" class="text-xs text-gray-400 mt-0.5"></p>
+      </div>
+      <button onclick="closeSummaryDetail()"
+              class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 active:scale-95 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="summaryDetailList" class="flex-1 overflow-y-auto px-5 py-3 space-y-2"></div>
   </div>
 </div>
 
@@ -2472,6 +2599,9 @@
          bg-softbg text-gray-800
          flex flex-col">
 
+  <!-- Konten dashboard (movable: History page atau tab Verifikasi admin) -->
+  <div id="dashboardInner" class="flex-1 flex flex-col min-h-0">
+
   <!-- HEADER -->
   <div class="sticky top-0 z-50 bg-white
               px-5 py-3 border-b border-gray-100
@@ -2498,50 +2628,50 @@
   </div>
 
   <!-- ===== SCORECARDS — compact 1-row, admin & warga ===== -->
-  <div id="dashboardScorecards" class="hidden flex-shrink-0 border-b border-gray-100 px-4 py-3">
+  <div id="dashboardScorecards" class="hidden flex-shrink-0 border-b border-gray-100 px-5 py-3">
     <div class="flex gap-2">
 
       <!-- Pending (admin) / Belum Lunas (warga) -->
-      <div class="flex-1 rounded-2xl px-3 py-2.5" style="background:#FFFBEB;border:1px solid #FDE68A;">
-        <div class="flex items-center gap-1.5 mb-1">
-          <div class="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#F59E0B;">
-            <svg style="width:10px;height:10px;" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <div id="scPendingCard" onclick="dashScorecardFilter('pending')" class="flex-1 min-w-0 rounded-2xl px-2.5 py-2.5 cursor-pointer active:scale-95 transition" style="background:#FFFBEB;border:1px solid #FDE68A;">
+        <div class="flex items-center gap-1 mb-1">
+          <div class="w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0" style="background:#F59E0B;">
+            <svg style="width:9px;height:9px;" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
           </div>
-          <p class="text-[9px] text-amber-600 font-bold uppercase tracking-wide leading-none truncate" id="scPendingLabel">Pending</p>
+          <p class="text-[9px] text-amber-600 font-bold uppercase leading-none truncate" id="scPendingLabel">Pending</p>
         </div>
-        <p id="scPendingCount" class="text-xl font-black text-gray-900 leading-none">—</p>
-        <p id="scPendingAmount" class="text-[10px] text-amber-700 font-semibold leading-none mt-0.5 whitespace-nowrap">Rp —</p>
+        <p id="scPendingCount" class="text-lg font-black text-gray-900 leading-none">—</p>
+        <p id="scPendingAmount" class="text-[10px] text-amber-700 font-semibold leading-none mt-1 truncate">Rp —</p>
       </div>
 
       <!-- Confirmed (admin) / Lunas (warga) -->
-      <div class="flex-1 rounded-2xl px-3 py-2.5" style="background:#F0FDF4;border:1px solid #BBF7D0;">
-        <div class="flex items-center gap-1.5 mb-1">
-          <div class="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#22C55E;">
-            <svg style="width:10px;height:10px;" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+      <div id="scConfirmedCard" onclick="dashScorecardFilter('confirmed')" class="flex-1 min-w-0 rounded-2xl px-2.5 py-2.5 cursor-pointer active:scale-95 transition" style="background:#F0FDF4;border:1px solid #BBF7D0;">
+        <div class="flex items-center gap-1 mb-1">
+          <div class="w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0" style="background:#22C55E;">
+            <svg style="width:9px;height:9px;" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
           </div>
-          <p class="text-[9px] text-green-700 font-bold uppercase tracking-wide leading-none truncate" id="scConfirmedLabel">Dikonfirmasi</p>
+          <p class="text-[9px] text-green-700 font-bold uppercase leading-none truncate" id="scConfirmedLabel">Confirmed</p>
         </div>
-        <p id="scConfirmedCount" class="text-xl font-black text-gray-900 leading-none">—</p>
-        <p id="scConfirmedAmount" class="text-[10px] text-green-700 font-semibold leading-none mt-0.5 whitespace-nowrap">Rp —</p>
+        <p id="scConfirmedCount" class="text-lg font-black text-gray-900 leading-none">—</p>
+        <p id="scConfirmedAmount" class="text-[10px] text-green-700 font-semibold leading-none mt-1 truncate">Rp —</p>
       </div>
 
       <!-- Total terkumpul -->
-      <div class="flex-1 rounded-2xl px-3 py-2.5" style="background:#EFF6FF;border:1px solid #BFDBFE;">
-        <div class="flex items-center gap-1.5 mb-1">
-          <div class="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#3B82F6;">
-            <svg style="width:10px;height:10px;" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      <div class="flex-1 min-w-0 rounded-2xl px-2.5 py-2.5" style="background:#EFF6FF;border:1px solid #BFDBFE;">
+        <div class="flex items-center gap-1 mb-1">
+          <div class="w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0" style="background:#3B82F6;">
+            <svg style="width:9px;height:9px;" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
           </div>
-          <p class="text-[9px] text-blue-700 font-bold uppercase tracking-wide leading-none">Total</p>
+          <p class="text-[9px] text-blue-700 font-bold uppercase leading-none truncate">Total</p>
         </div>
-        <p id="scTotalAmount" class="text-xl font-black text-gray-900 leading-none whitespace-nowrap">—</p>
-        <p id="scTotalLabel" class="text-[10px] text-blue-600 font-semibold leading-none mt-0.5">terkumpul</p>
+        <p id="scTotalAmount" class="text-[15px] font-black text-gray-900 leading-none truncate">—</p>
+        <p id="scTotalLabel" class="text-[10px] text-blue-600 font-semibold leading-none mt-1 truncate">terkumpul</p>
       </div>
 
     </div>
   </div>
 
   <!-- ===== FREEZE AREA ===== -->
-  <div class="px-5 pt-3 pb-2 space-y-3 bg-softbg/95 backdrop-blur">
+  <div id="dashboardFreeze" class="px-5 pt-3 pb-2 space-y-3 bg-softbg/95 backdrop-blur">
 
     <!-- SEARCH (COMPACT) -->
     <div class="relative">
@@ -2646,13 +2776,11 @@
   <!-- SCROLL AREA -->
   <div class="flex-1 overflow-y-auto px-5 pb-24">
 
-    <div id="dashboardLoading"
-        class="hidden flex-col items-center justify-center h-[40vh] gap-3">
-      <svg class="w-7 h-7 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-      </svg>
-      <p class="text-sm text-gray-400">Memuat data...</p>
+    <div id="dashboardLoading" class="hidden flex-col gap-3 pt-1">
+      <div class="skeleton rounded-2xl w-full" style="height:96px;"></div>
+      <div class="skeleton rounded-2xl w-full" style="height:96px;"></div>
+      <div class="skeleton rounded-2xl w-full" style="height:96px;"></div>
+      <div class="skeleton rounded-2xl w-full" style="height:96px;"></div>
     </div>
 
     <div id="dashboardError"
@@ -2684,6 +2812,7 @@
     </div>
 
   </div>
+  </div><!-- /#dashboardInner -->
 </section>
 
 <!-- MODAL KONFIRMASI AKTIFKAN WARGA -->
@@ -3591,16 +3720,16 @@
   </div>
 
   <!-- SCROLL AREA -->
-  <div class="flex-1 overflow-y-auto px-5 py-5 space-y-3 pb-24">
+  <div class="flex-1 overflow-y-auto px-5 pt-0 pb-24 space-y-3">
 
     <!-- ADMIN ONLY SECTION -->
-    <div id="adminExploreSection" class="space-y-4">
+    <div id="adminExploreSection" class="space-y-4 pt-5">
 
       <!-- ── SCORECARDS ROW ── -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 
         <!-- Warga -->
-        <div onclick="openDataWargaCRUD()"
+        <div onclick="switchAdminTab('warga')"
              class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#EBF5FB;">
             <svg class="w-4 h-4" fill="none" stroke="#2980B9" stroke-width="1.8" viewBox="0 0 24 24">
@@ -3613,7 +3742,7 @@
         </div>
 
         <!-- Pengaduan Masuk -->
-        <div onclick="openAdminPengaduan()"
+        <div onclick="switchAdminTab('pengaduan')"
              class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#FDEDEC;">
             <svg class="w-4 h-4" fill="none" stroke="#E74C3C" stroke-width="1.8" viewBox="0 0 24 24">
@@ -3627,21 +3756,24 @@
           <p class="text-xs text-gray-400 font-medium">Pengaduan Masuk</p>
         </div>
 
-        <!-- Warga Pending -->
-        <div onclick="openWargaBaruCRUD()"
-             class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#FEF9E7;">
-            <svg class="w-4 h-4" fill="none" stroke="#F39C12" stroke-width="1.8" viewBox="0 0 24 24">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              <path d="M12 11v4M12 19h.01"/>
+        <!-- Verifikasi Bayar (shortcut bendahara) -->
+        <div onclick="switchAdminTab('verifikasi')"
+             class="rounded-2xl shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition"
+             style="background:#EAFAF1;border:1px solid #B7E4C7;">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#43A047;">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
           </div>
-          <p id="scAdminWargaBaru" class="text-2xl font-black text-gray-900 leading-none">—</p>
-          <p class="text-xs text-gray-400 font-medium">Pendaftar Baru</p>
+          <p class="text-base font-black text-gray-900 leading-tight mt-0.5">Verifikasi<br>Bayar</p>
+          <p class="text-xs text-primary font-semibold flex items-center gap-0.5">
+            Cek pembayaran
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </p>
         </div>
 
         <!-- Fasum Bermasalah -->
-        <div onclick="openFasumCRUD()"
+        <div onclick="switchAdminTab('fasum')"
              class="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex flex-col gap-1.5 cursor-pointer active:scale-95 transition">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:#EAFAF1;">
             <svg class="w-4 h-4" fill="none" stroke="#27AE60" stroke-width="1.8" viewBox="0 0 24 24">
@@ -3658,11 +3790,83 @@
 
       </div>
 
-      <!-- ── ACTION CARDS GRID ── -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <!-- ── TAB NAVBAR ── -->
+      <div id="adminTabNav" class="flex gap-1.5 overflow-x-auto rounded-2xl p-1.5 no-scrollbar" style="background:#F1F3F1;">
+        <button class="admin-tab admin-tab-active" data-tab="ringkasan" onclick="switchAdminTab('ringkasan')">Ringkasan</button>
+        <button class="admin-tab" data-tab="pengaduan" onclick="switchAdminTab('pengaduan')">Pengaduan</button>
+        <button class="admin-tab" data-tab="pendaftar" onclick="switchAdminTab('pendaftar')">Pendaftar</button>
+        <button class="admin-tab" data-tab="warga"     onclick="switchAdminTab('warga')">Data Warga</button>
+        <button class="admin-tab" data-tab="info"      onclick="switchAdminTab('info')">Info Cluster</button>
+        <button class="admin-tab" data-tab="greeting"  onclick="switchAdminTab('greeting')">Greeting</button>
+        <button class="admin-tab" data-tab="fasum"     onclick="switchAdminTab('fasum')">Fasum</button>
+        <button class="admin-tab" data-tab="kasipl"    onclick="switchAdminTab('kasipl')">Kas IPL</button>
+        <button class="admin-tab admin-tab-action" data-tab="verifikasi" onclick="switchAdminTab('verifikasi')">Verifikasi Bayar</button>
+      </div>
+
+      <!-- ── TAB PANELS (satu tampil per waktu) ── -->
+      <div id="adminPanels">
+
+        <!-- RINGKASAN -->
+        <div data-panel="ringkasan" class="admin-panel space-y-3">
+          <!-- Kirim Pengumuman (broadcast notif) -->
+          <button onclick="openBroadcast()"
+                  class="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between active:scale-[0.99] transition text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#6366F1;">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 0 1-1.564-.317z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Kirim Pengumuman</p>
+                <p class="text-xs text-gray-400">Broadcast notifikasi ke semua warga</p>
+              </div>
+            </div>
+            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <!-- Status Rumah -->
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-gray-900">Status Rumah</p>
+                <p class="text-xs text-gray-400">Tap kartu untuk lihat detail</p>
+              </div>
+              <span id="summaryTotalRumah" class="text-xs font-semibold text-gray-500"></span>
+            </div>
+            <div id="summaryStatusCards" class="grid grid-cols-3 gap-2"></div>
+          </div>
+          <!-- Belum Bayar (Tunggakan) -->
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <p class="text-sm font-bold text-gray-900">Belum Bayar (Tunggakan)</p>
+                <p class="text-xs text-gray-400">Periode berjalan · cut-off tgl 5</p>
+              </div>
+              <span id="arrearsAsOf" class="text-[11px] text-gray-400"></span>
+            </div>
+            <button id="arrearsCard" onclick="openArrearsDetail()"
+                    class="w-full rounded-2xl p-4 text-left active:scale-95 transition"
+                    style="background:#FEF2F2;border:1px solid #FECACA;">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p id="arrearsHouses" class="text-2xl font-black leading-none" style="color:#DC2626;">—</p>
+                  <p class="text-[11px] font-semibold text-gray-500 mt-1">rumah belum bayar</p>
+                </div>
+                <div class="text-right">
+                  <p id="arrearsAmount" class="text-sm font-bold text-gray-700">—</p>
+                  <p id="arrearsMonths" class="text-[11px] text-gray-400 mt-0.5">Lihat detail ›</p>
+                </div>
+              </div>
+            </button>
+          </div>
+          <!-- Total Kas IPL per Tahun -->
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <p class="text-sm font-bold text-gray-900">Total Kas IPL per Tahun</p>
+            <p class="text-xs text-gray-400 mb-3">Akumulasi pembayaran terkonfirmasi (sesuai sheet)</p>
+            <div id="summaryYearList" class="space-y-2"></div>
+          </div>
+        </div>
 
         <!-- INFO CLUSTER -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="info" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -3685,7 +3889,7 @@
         </div>
 
         <!-- DATA WARGA -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="warga" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -3708,7 +3912,7 @@
         </div>
 
         <!-- GREETING -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="greeting" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
@@ -3730,7 +3934,7 @@
         </div>
 
         <!-- FASUM -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="fasum" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
@@ -3752,7 +3956,7 @@
         </div>
 
         <!-- PENGADUAN -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="pengaduan" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
@@ -3778,7 +3982,7 @@
         </div>
 
         <!-- WARGA BARU -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div data-panel="pendaftar" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
@@ -3803,6 +4007,32 @@
           </div>
           <div id="adminWargaBaruPreviewList" class="px-4 pb-3 border-t border-gray-50 pt-2"></div>
         </div>
+
+        <!-- LAPORAN KAS IPL -->
+        <div data-panel="kasipl" class="admin-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900">Laporan Kas IPL</p>
+                <p class="text-xs text-gray-400">Upload laporan ke Drive</p>
+              </div>
+            </div>
+            <button onclick="openKasIplCRUD()"
+                    class="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-xl active:scale-95 transition">
+              Kelola →
+            </button>
+          </div>
+          <div id="adminKasIplPreviewList" class="px-4 pb-3 border-t border-gray-50 pt-2"></div>
+        </div>
+
+        <!-- VERIFIKASI BAYAR — konten dashboard verifikasi di-mount via JS -->
+        <div data-panel="verifikasi" class="admin-panel hidden"></div>
 
       </div>
     </div>
