@@ -1220,7 +1220,11 @@ function gasPost_(action, body) {
     }
 
     function formatDateISO(date) {
-      return date.toISOString().split('T')[0];
+      // Pakai tanggal LOKAL (bukan toISOString yg UTC → bisa mundur 1 hari di WIB)
+      var y = date.getFullYear();
+      var m = String(date.getMonth() + 1).padStart(2, '0');
+      var d = String(date.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d;
     }
 
     function formatDateHuman(date) {
@@ -2890,6 +2894,15 @@ function gasPost_(action, body) {
     var filterRow = document.getElementById('dashboardFilterRow');
 
     if (titleEl) titleEl.innerText = isAdmin ? 'Dashboard Verifikasi' : 'Riwayat Pembayaran';
+    var subEl = document.getElementById('dashboardSubtitle');
+    if (subEl) {
+      if (isAdmin) {
+        subEl.innerText = 'Semua daftar pembayaran warga';
+      } else {
+        var _nm = (currentUser && currentUser.fullName) ? currentUser.fullName.split(' ')[0] : '';
+        subEl.innerText = _nm ? ('Riwayat pembayaran IPL ' + _nm) : 'Riwayat pembayaran IPL kamu';
+      }
+    }
     if (tabRow)    tabRow.classList.add('hidden');
     if (filterRow) filterRow.classList.toggle('hidden', !isAdmin);
 
@@ -3147,6 +3160,8 @@ function gasPost_(action, body) {
       if (el('scConfirmedAmount')) el('scConfirmedAmount').textContent = fmt(confirmedAmt);
       if (el('scTotalAmount'))     el('scTotalAmount').textContent    = fmt(confirmedAmt);
       if (el('scTotalLabel'))      el('scTotalLabel').textContent     = 'terkumpul';
+      // Admin verifikasi: sembunyikan ringkasan bulan (khusus warga)
+      var _ms = el('wargaMonthSummary'); if (_ms) _ms.classList.add('hidden');
     } else {
       // Warga: filter by their own email only
       var myEmail = currentUser && currentUser.email ? currentUser.email.trim().toLowerCase() : '';
@@ -3156,10 +3171,10 @@ function gasPost_(action, body) {
       var wargaConfirmedAmt = wargaConfirmed.reduce(function(s, i) { return s + Number(i.nominal || 0); }, 0);
       var wargaTotalAmt = wargaPendingAmt + wargaConfirmedAmt;
 
-      if (el('scPendingLabel'))    el('scPendingLabel').textContent   = 'Menunggu';
+      if (el('scPendingLabel'))    el('scPendingLabel').textContent   = 'Pending';
       if (el('scPendingCount'))    el('scPendingCount').textContent   = wargaPending.length;
       if (el('scPendingAmount'))   el('scPendingAmount').textContent  = fmt(wargaPendingAmt);
-      if (el('scConfirmedLabel'))  el('scConfirmedLabel').textContent = 'Lunas';
+      if (el('scConfirmedLabel'))  el('scConfirmedLabel').textContent = 'Confirmed';
       if (el('scConfirmedCount'))  el('scConfirmedCount').textContent = wargaConfirmed.length;
       if (el('scConfirmedAmount')) el('scConfirmedAmount').textContent = fmt(wargaConfirmedAmt);
       if (el('scTotalAmount'))     el('scTotalAmount').textContent    = fmt(wargaTotalAmt);
@@ -3167,6 +3182,130 @@ function gasPost_(action, body) {
 
       // Make scorecard cards clickable as filters
       _bindWargaScorecard_();
+
+      // Ringkasan status pembayaran per bulan (kalender mini)
+      _renderWargaMonthSummary_(wargaPending, wargaConfirmed);
+    }
+  }
+
+  // State tahun terpilih untuk ringkasan bulan warga
+  var _wargaSummaryYear_ = null;
+
+  // Render kalender mini status pembayaran warga (hijau=lunas, kuning=pending, abu=belum)
+  function _renderWargaMonthSummary_(pendingArr, confirmedArr) {
+    var box = document.getElementById('wargaMonthSummary');
+    if (!box) return;
+
+    var MONTHS = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    function monthIdx(b) {
+      var s = String(b || '').trim().toLowerCase().slice(0, 3);
+      for (var i = 0; i < MONTHS.length; i++) {
+        if (MONTHS[i].toLowerCase() === s) return i;
+      }
+      return -1;
+    }
+
+    // status per tahun: { '2026': { 4:'confirmed', 3:'pending' } }
+    var byYear = {};
+    function mark(arr, status) {
+      (arr || []).forEach(function(it) {
+        var yr = String(it.tahun || '').trim();
+        var mi = monthIdx(it.bulan);
+        if (!yr || mi < 0) return;
+        if (!byYear[yr]) byYear[yr] = {};
+        // confirmed menang atas pending
+        if (byYear[yr][mi] !== 'confirmed') byYear[yr][mi] = status;
+      });
+    }
+    mark(pendingArr, 'pending');
+    mark(confirmedArr, 'confirmed');
+
+    var years = Object.keys(byYear).sort(function(a, b) { return Number(b) - Number(a); });
+    if (years.length === 0) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+
+    if (!_wargaSummaryYear_ || years.indexOf(_wargaSummaryYear_) === -1) {
+      _wargaSummaryYear_ = years[0];
+    }
+    var yr = _wargaSummaryYear_;
+    var statuses = byYear[yr] || {};
+
+    var lunasCount = 0, pendingCount = 0;
+    for (var k in statuses) {
+      if (statuses[k] === 'confirmed') lunasCount++;
+      else if (statuses[k] === 'pending') pendingCount++;
+    }
+
+    // Dropdown tahun (jika >1 tahun)
+    var yearSelect = '';
+    if (years.length > 1) {
+      yearSelect =
+        '<select onchange="setWargaSummaryYear(this.value)" ' +
+        'class="text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 outline-none">' +
+        years.map(function(y) {
+          return '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '</option>';
+        }).join('') +
+        '</select>';
+    } else {
+      yearSelect = '<span class="text-xs font-bold text-gray-900">' + yr + '</span>';
+    }
+
+    // Grid 12 bulan
+    var cells = MONTHS.map(function(name, i) {
+      var st = statuses[i];
+      var cls, dot, clickable = '';
+      if (st === 'confirmed') {
+        cls = 'bg-green-50 border-green-200 text-green-700';
+        dot = '#22C55E';
+        clickable = ' onclick="wargaJumpMonth(\'' + name + '\',\'' + yr + '\')"';
+      } else if (st === 'pending') {
+        cls = 'bg-amber-50 border-amber-200 text-amber-700';
+        dot = '#F59E0B';
+        clickable = ' onclick="wargaJumpMonth(\'' + name + '\',\'' + yr + '\')"';
+      } else {
+        cls = 'bg-gray-50 border-gray-100 text-gray-300';
+        dot = '#E5E7EB';
+      }
+      return '<div' + clickable + ' class="flex flex-col items-center justify-center gap-1 rounded-xl border py-2 ' +
+        cls + (clickable ? ' cursor-pointer active:scale-95 transition' : '') + '">' +
+        '<span class="w-1.5 h-1.5 rounded-full" style="background:' + dot + '"></span>' +
+        '<span class="text-[11px] font-semibold leading-none">' + name + '</span>' +
+        '</div>';
+    }).join('');
+
+    box.innerHTML =
+      '<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5">' +
+        '<div class="flex items-center justify-between mb-2.5">' +
+          '<div class="flex items-center gap-2">' +
+            '<p class="text-sm font-bold text-gray-900">Status Pembayaran</p>' +
+            yearSelect +
+          '</div>' +
+          '<span class="text-[11px] font-semibold text-green-600">' + lunasCount + '/12 lunas</span>' +
+        '</div>' +
+        '<div class="grid grid-cols-6 gap-1.5">' + cells + '</div>' +
+        '<div class="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-gray-50">' +
+          '<span class="flex items-center gap-1 text-[10px] text-gray-500"><span class="w-1.5 h-1.5 rounded-full" style="background:#22C55E"></span>Lunas</span>' +
+          '<span class="flex items-center gap-1 text-[10px] text-gray-500"><span class="w-1.5 h-1.5 rounded-full" style="background:#F59E0B"></span>Pending</span>' +
+          '<span class="flex items-center gap-1 text-[10px] text-gray-500"><span class="w-1.5 h-1.5 rounded-full" style="background:#E5E7EB"></span>Belum bayar</span>' +
+        '</div>' +
+      '</div>';
+    box.classList.remove('hidden');
+  }
+
+  // Ganti tahun ringkasan & re-render
+  function setWargaSummaryYear(y) {
+    _wargaSummaryYear_ = String(y);
+    updateDashboardScorecards();
+  }
+
+  // Tap bulan → filter list ke bulan tsb via search bar
+  function wargaJumpMonth(bulan, tahun) {
+    var searchEl = document.getElementById('dashboardSearch');
+    if (!searchEl) return;
+    searchEl.value = bulan + ' ' + tahun;
+    searchEl.dispatchEvent(new Event('input', { bubbles: true }));
+    var list = document.getElementById('dashboardList');
+    if (list && list.scrollIntoView) {
+      list.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -7476,6 +7615,93 @@ function openDataWargaForm(data) {
   document.getElementById('dataWargaFormEmail').value = data ? data.email : '';
   var roleEl = document.getElementById('dataWargaFormRole');
   if (roleEl) roleEl.value = (data && data.role === 'admin') ? 'admin' : 'warga';
+
+  // ===== Pengaturan IPL (dari sheet IPL tahun berjalan) =====
+  var ipl = (data && data.ipl) ? data.ipl : {};
+  _iplFormYear_ = ipl.year || new Date().getFullYear();
+
+  var statusEl = document.getElementById('dataWargaFormStatus');
+  if (statusEl) statusEl.value = ipl.status || '';
+
+  _iplSetRupiah_('dataWargaFormNominal', ipl.iplWajib);
+  _iplSetRupiah_('dataWargaFormTarifA',  ipl.tarif175);
+  _iplSetRupiah_('dataWargaFormTarifB',  ipl.tarif200);
+
+  // Dropdown bulan (tahun otomatis = tahun sheet)
+  _iplFillMonthSelect_('dataWargaFormStartA', ipl.start175);
+  _iplFillMonthSelect_('dataWargaFormEndA',   ipl.end175);
+  _iplFillMonthSelect_('dataWargaFormStartB', ipl.start200);
+  _iplFillMonthSelect_('dataWargaFormEndB',   ipl.end200);
+
+  var yrEl = document.getElementById('dataWargaFormIplYear');
+  if (yrEl) yrEl.textContent = 'IPL-' + _iplFormYear_;
+  var yrInline = document.getElementById('dataWargaFormIplYearInline');
+  if (yrInline) yrInline.textContent = _iplFormYear_;
+}
+
+// ===== Helper IPL: nominal Rupiah & dropdown bulan =====
+var _iplFormYear_ = new Date().getFullYear();
+var _IPL_MONTHS_ = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Map token bulan (ID/EN) → singkatan EN kanonik
+function _iplCanonMonth_(str) {
+  var s = String(str || '').trim().toLowerCase();
+  var m = s.match(/([a-z]+)/);
+  if (!m) return '';
+  var t = m[1].slice(0, 3);
+  var MAP = { jan:'Jan',feb:'Feb',mar:'Mar',apr:'Apr',may:'May',mei:'May',jun:'Jun',
+              jul:'Jul',aug:'Aug',agu:'Aug',agt:'Aug',sep:'Sep',oct:'Oct',okt:'Oct',
+              nov:'Nov',dec:'Dec',des:'Dec' };
+  return MAP[t] || '';
+}
+
+// Isi <select> bulan, preselect dari nilai tersimpan ("May 2026" / "Mei 2026")
+function _iplFillMonthSelect_(id, storedVal) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var sel = _iplCanonMonth_(storedVal);
+  var html = '<option value="">— bulan —</option>';
+  _IPL_MONTHS_.forEach(function(mo) {
+    html += '<option value="' + mo + '"' + (mo === sel ? ' selected' : '') + '>' + mo + '</option>';
+  });
+  el.innerHTML = html;
+}
+
+// Set input nominal jadi format "Rp X.XXX" dari angka
+function _iplSetRupiah_(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var digits = String(val == null ? '' : val).replace(/[^\d]/g, '');
+  el.value = digits ? ('Rp ' + Number(digits).toLocaleString('id-ID')) : '';
+}
+
+// Handler oninput: terima angka saja, format Rp, tampilkan hint kalau ada karakter non-angka
+function _iplRupiahInput_(el) {
+  if (!el) return;
+  var raw = el.value;
+  var hadInvalid = /[^\d\s.Rp]/i.test(raw) || /[a-zA-Z]/.test(raw.replace(/^Rp/i, ''));
+  var digits = raw.replace(/[^\d]/g, '');
+  el.value = digits ? ('Rp ' + Number(digits).toLocaleString('id-ID')) : '';
+  var hint = document.getElementById(el.id + 'Hint');
+  if (hint) {
+    if (hadInvalid) { hint.classList.remove('hidden'); setTimeout(function(){ hint.classList.add('hidden'); }, 2000); }
+    else hint.classList.add('hidden');
+  }
+}
+
+// Ambil angka murni dari field rupiah
+function _iplNumVal_(id) {
+  var el = document.getElementById(id);
+  if (!el) return '';
+  var d = el.value.replace(/[^\d]/g, '');
+  return d || '';
+}
+
+// Bangun string periode "Mon YEAR" dari dropdown bulan + tahun form
+function _iplPeriodVal_(id) {
+  var el = document.getElementById(id);
+  if (!el || !el.value) return '';
+  return el.value + ' ' + _iplFormYear_;
 }
 
 function closeDataWargaForm() {
@@ -7502,7 +7728,17 @@ function saveDataWargaForm() {
     noHp  : document.getElementById('dataWargaFormHp').value.trim(),
     email : document.getElementById('dataWargaFormEmail').value.trim().toLowerCase(),
     role  : roleEl ? roleEl.value : 'warga',
-    adminEmail : currentUser ? currentUser.email : ''
+    adminEmail : currentUser ? currentUser.email : '',
+    ipl : {
+      status   : (document.getElementById('dataWargaFormStatus') || {}).value || '',
+      iplWajib : _iplNumVal_('dataWargaFormNominal'),
+      tarif175 : _iplNumVal_('dataWargaFormTarifA'),
+      start175 : _iplPeriodVal_('dataWargaFormStartA'),
+      end175   : _iplPeriodVal_('dataWargaFormEndA'),
+      tarif200 : _iplNumVal_('dataWargaFormTarifB'),
+      start200 : _iplPeriodVal_('dataWargaFormStartB'),
+      end200   : _iplPeriodVal_('dataWargaFormEndB')
+    }
   };
 
   gasPost_('adminSaveDataWarga', { payload: payload })

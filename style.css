@@ -2191,5 +2191,7 @@ body.dark .bg-gray-200.animate-pulse::after {
 
   /* Verifikasi inline: sembunyikan header redundan */
   #adminPanels .dash-inline > .sticky { display: none !important; }
-  #dashboardScorecards { padding: 10px 0 !important; }
+  /* History: padding-h 20px samakan dgn search (px-5).
+     Admin verifikasi inline di-nol-kan oleh rule #explorePage .dash-inline di atas. */
+  #dashboardScorecards { padding: 10px 20px !important; }
 }
